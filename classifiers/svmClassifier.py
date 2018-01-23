@@ -5,9 +5,9 @@ from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import SGDClassifier
 
-from functions.basicFunctions import BasicFunctions
-from customFeatures import CustomFeatures
-from customTokenizer import CustomTokenizer
+from functions.basicFunctions import getMetrics
+from text.textFeatures import TextFeatures
+from text.textTokenizer import TextTokenizer
 
 from nltk.corpus import stopwords as sw
 
@@ -58,10 +58,10 @@ class SVM:
     self.accuracy, self.precision, self.recall, self.f1score = BasicFunctions.getMetrics(self.Y_dev, self.Y_predictedDEV, self.labels)
 
   def printBasicEvaluation(self):    
-    BasicFunctions.printEvaluation(self.accuracy, self.precision, self.recall, self.f1score, "Basic Evaluation")
+    Printer.printEvaluation(self.accuracy, self.precision, self.recall, self.f1score, "Basic Evaluation")
 
   def printClassEvaluation(self):
-    BasicFunctions.printClassEvaluation(self.Y_dev, self.Y_predictedDEV, self.labels)
+    Printer.printClassEvaluation(self.Y_dev, self.Y_predictedDEV, self.labels)
 
 
 

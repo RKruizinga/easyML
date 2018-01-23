@@ -20,19 +20,6 @@ class Constants:
     'help': 'Random Seed number'
   }
 
-  data_method = {
-    'name': 'data_method',
-    'type': int,
-    'default': 1,
-    'help': 'How to read the data'
-  }
-
-  predict_languages = {
-    'name': 'predict_languages',
-    'type': str,
-    'default': 'e',
-    'help': 'Which languages to predict'
-  }
 
   predict_label = {
     'name': 'predict_label',
@@ -55,6 +42,26 @@ class Constants:
     'help': 'Cross validation K'
   }
 
+  dataset = {
+    'name': 'dataset',
+    'type': list,
+    'default': ['train', 'development', 'test'],
+    'help': 'Specify which datasets you want to use ([train, development, test])'
+  }
+
+  data_folder = {
+    'name': 'data_folder',
+    'type': str,
+    'default': 'data/emoji_prediction/',
+    'help': 'Specify in which folder the files are)'
+  }
+
+  data_method = {
+    'name': 'data_method',
+    'type': int,
+    'default': 1,
+    'help': 'How to read the data'
+  }
 
   def __init__(self):
     pass

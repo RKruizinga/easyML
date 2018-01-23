@@ -48,15 +48,24 @@ def getMetrics(Y_test, Y_predicted, labels):
 
 def classifier(method, data):
   if method == 'bayes':
+    from classifiers.bayesClassifier import Bayes
     return Bayes(data) 
   elif method == 'svm':
+    from classifiers.svmClassifier import SVM
     classifier = SVM(data) 
   elif method == 'knear':
+    from classifiers.kNeighborsClassifier import KNeighbors
     classifier = KNeighbors(data)
   elif method == 'tree':
+    from classifiers.decisionTreeClassifier import DecisionTree
     classifier = DecisionTree(data)
   elif method == 'neural':
-    from neuralNetworkClassifier import NeuralNetwork
+    from classifiers.neuralNetworkClassifier import NeuralNetwork
     classifier = NeuralNetwork(data)
   elif method == 'baseline':
+    from classifiers.baselineClassifier import Baseline
     classifier = Baseline(data)
+
+
+
+

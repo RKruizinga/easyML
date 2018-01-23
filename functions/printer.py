@@ -5,11 +5,14 @@ import time
 import datetime
 import numpy as np
 import re
+import collections
 
 import sklearn
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
+
+from functions.basicFunctions import keyCounter
 
 class Printer:
 
@@ -26,11 +29,14 @@ class Printer:
       else:
         return '\t\t\t'
     else: 
-      if len(str(value)) > 5:
+      if len(str(value)) > 20:
+        return '\t'
+      if len(str(value)) > 15:
+        return '\t\t'
+      elif len(str(value)) > 5:
         return '\t\t\t'
       else:
         return '\t\t\t\t'
-      print(len(str(value)))
 
   def tabSpace(self, text):
     if len(text) > 13:
@@ -60,7 +66,6 @@ class Printer:
         middle_tabs = '\t'
         end_tabs = '\t\t'
 
-
         print('{} \t {} {} {} {} {}'.format(tags, name.title(), self.tabSpace(name), value, self.tabFill(name, value), tags))
     print('#'*91)
 
@@ -82,7 +87,7 @@ class Printer:
     print("Class \t Precision \t Recall \t F-score")
 
     for label in labels:
-      accuracy, precision, recall, f1score = BasicFunctions.getMetrics(Y_test, Y_predicted, [label])
+      accuracy, precision, recall, f1score = getMetrics(Y_test, Y_predicted, [label])
       print('{} \t {} \t\t {} \t\t {}'.format(
         label,
         round(precision, 3),
@@ -92,12 +97,28 @@ class Printer:
 
 ### Function to print label distribution of data
 ### input(Y_list)
-  def labelDistribution(self, Y, text):
-    label_distribution = BasicFunctions.keyCounter(Y)
+  def labelDistribution(self, Y, text, orderBy='label'):
+    label_distribution = keyCounter(Y)
+
+    is_digit = False
+    label_distribution_ordered = []
+    for label in label_distribution:
+      if label.isdigit():
+        label_distribution_ordered.append((int(label), label_distribution[label]))
+      else:
+        label_distribution_ordered.append((label, label_distribution[label]))
+
+    if orderBy == 'label':
+      num = 0
+      rev = False
+    else:
+      num = 1
+      rev = True
+    label_distribution_ordered = sorted(label_distribution_ordered, key=lambda x: x[num], reverse=rev)
 
     print('~~~Label Distribution of {}~~~'.format(text))
-    for label in label_distribution:
-      print('{} \t {}'.format(label, label_distribution[label]))
+    for label, amount in label_distribution_ordered:
+      print('{} \t {}'.format(label, amount))
 
 ### Function to print duration of script
 ### input(start, end)
