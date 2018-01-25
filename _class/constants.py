@@ -62,5 +62,19 @@ class Constants:
     'help': 'How to read the data'
   }
 
+  print_details = {
+    'name': 'print_details',
+    'type': int,
+    'default': 1,
+    'help': 'To which level of detail should we print results (1 = least details, 8 = most details'
+  }
+
+  show_fitting = {
+    'name': 'show_fitting',
+    'type': bool,
+    'default': False,
+    'help': 'Should we show the time that the system fits the model?'
+  }
+
   def __init__(self):
     pass

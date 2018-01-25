@@ -1,8 +1,8 @@
 import numpy as np
 
 import sklearn
-from function.basic import metrics, keyCounter
-from function.printer import Printer
+from _function.basic import metrics, keyCounter
+from _class.printer import Printer
 
 class Baseline:
 
@@ -16,7 +16,7 @@ class Baseline:
 
   features = []
 
-  def __init__(self, data):
+  def __init__(self, data, show_fitting):
     self.X_train = data.X_train
     self.Y_train = data.Y_train
 
@@ -27,10 +27,12 @@ class Baseline:
 
     self.labels = data.labels
 
+    self.show_fitting = show_fitting
+
     self.classifier = Classifier()
 
   def classify(self, features, classifier=None):
-    self.printer = Printer('Model Fitting')
+    self.printer = Printer('Model Fitting', self.show_fitting)
     self.classifier.fit(self.X_train, self.Y_train)  
     self.printer.duration()
 

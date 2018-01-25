@@ -1,18 +1,10 @@
 from sklearn.neighbors import KNeighborsClassifier
 
-import numpy as np
-
 import sklearn
 from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.feature_extraction.text import TfidfVectorizer
 
-from function.basic import metrics
-from function.printer import Printer
-
-from text.features import TextFeatures
-from text.tokenizer import TextTokenizer
-
-from nltk.corpus import stopwords as sw
+from _function.basic import metrics
+from _class.printer import Printer
 
 class KNeighbors:
   X_train = []
@@ -27,7 +19,8 @@ class KNeighbors:
 
   features = []
 
-  def __init__(self, data):
+  def __init__(self, data, show_fitting):
+
     self.X_train = data.X_train
     self.Y_train = data.Y_train
 
@@ -38,23 +31,13 @@ class KNeighbors:
 
     self.labels = data.labels
 
-  def classify(self, features, classifier=None):
-    if len(features) < 1:
-      feature_union = ('feats', FeatureUnion([
-             #('wordCount', CustomFeatures.wordCount()),
-             #('characterCount', CustomFeatures.characterCount()),
-            #  ('userMentions', CustomFeatures.userMentions()),
-            #  ('urlMentions', CustomFeatures.urlMentions()),
-            #  ('instagramMentions', CustomFeatures.instagramMentions()),
-             #('hashtagUse', CustomFeatures.hashtagUse()),
-	 					 #('char', TfidfVectorizer(tokenizer=Tokenizer.tweetIdentity, lowercase=False, analyzer='char', ngram_range=(3,5), min_df=1)),#, max_features=100000)),
-	 					 ('word', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeTweet, lowercase=False, analyzer='word', stop_words=sw.words('english'), ngram_range=(1,20), min_df=1)),#, max_features=100000)),
-      ]))
-    else:
-      feature_union = ('feats', FeatureUnion(
-        features
-      ))
+    self.show_fitting =show_fitting
 
+  def classify(self, features, classifier=None):
+    feature_union = ('feats', FeatureUnion(
+      features
+    ))
+    
     if classifier == None:
       classifier = KNeighborsClassifier(n_neighbors=40)
       
@@ -63,7 +46,7 @@ class KNeighbors:
       ('classifier', classifier)
     ])
 
-    self.printer = Printer('Model Fitting')
+    self.printer = Printer('Model Fitting', self.show_fitting)
     self.classifier.fit(self.X_train, self.Y_train)  
     self.printer.duration()
 

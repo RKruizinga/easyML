@@ -1,110 +1,99 @@
 
+#Step 1: Import all mandatory functions
 import random
 
-from options import Options
-from data import Data
-from constants import Constants
+#Step 1.1: Import all classes
+from _class.options import Options
+from _class.data import Data
+from _class.constants import Constants
+from _class.printer import Printer
 
-from function.printer import Printer
+#Step 1.2: Import all functions
+from _function.basic import classifier, run
+from _function.custom import writeResults, languages
 
-from function.basic import classifier
-from function.custom import writeResults, languages
-
-from method.validation import KFoldValidation
-
+#Step 1.3: Import classifier
 from classifier.features import ClassifierFeatures
 
+#Step 2: Import custom functions
 from text.features import TextFeatures
 from text.tokenizer import TextTokenizer
 
-## Import custom functions
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import SGDClassifier
 from nltk.corpus import stopwords as sw
 
-### Get all constants
+#Step 3: Get all constants
 con = Constants()
 
-# Read arguments
-options = Options(description='system parameters')
-options.add(name=con.title['name'], _type=con.title['type'], _default=con.title['default'], _help=con.title['help'])
-options.add(name=con.method['name'], _type=con.method['type'], _default=con.method['default'], _help=con.method['help'])
-options.add(name=con.dataset['name'], _type=con.dataset['type'], _default=con.dataset['default'], _help=con.dataset['help'])
-options.add(name=con.random_seed['name'], _type=con.random_seed['type'], _default=con.random_seed['default'], _help=con.random_seed['help'])
-options.add(name=con.avoid_skewness['name'], _type=con.avoid_skewness['type'], _default=con.avoid_skewness['default'], _help=con.avoid_skewness['help'])
-options.add(name=con.KFold['name'], _type=con.KFold['type'], _default=con.KFold['default'], _help=con.KFold['help'])
+#Step 4: Get options and read all system arguments
+options = Options('System parameters', con)
 
-options.add(name=con.data_folder['name'], _type=con.data_folder['type'], _default=con.data_folder['default'], _help=con.data_folder['help'])
-
-#specific arguments for each situation
+#Step 5: Read all custom arguments/options
 options.add(name='predict_languages', _type=str, _default='esdi', _help='specify which language you want to predict')
-options.add(name='predict_label', _type=str, _default='gender', _help='specify which variable you want to predict')
-options.add(name='data_method', _type=int, _default=1, _help='specify which data method you want to use')
 
-
+#Step 6: Parse arguments
 options.parse()
 
-### change for random seed
+#Use random seed
 random.seed(options.args.random_seed)
 
+#Custom function to read language from input
 options.args.predict_languages = languages(options.args.predict_languages)
 
+#Print system
 printer = Printer('System')
 printer.system(options.args_dict)
 
+#Step 7: Create data with default arguments
 data = Data(options.args.avoid_skewness, options.args.data_folder, options.args.predict_label, options.args.data_method)
 
-### THIS PART IS CASE SPECIFIC
-#specify training, development and test files (if any)
+#Step 8: Add all datasources and transform them to row(Y, X) format
+#Custom, should be self-made!
 
+#Step 8.1: Add the files or folders the data is preserved in (only if available)
 if options.args.predict_languages:
   data.file_train = options.args.data_folder+'training/'
   # data.file_development = 'eng-trial.pickle'
   # data.file_test = 'eng-test.pickle'
 
-data.documents = {} #documents per language and per user
-data.labels = {}
-
+#Custom function
 data.languages = options.args.predict_languages
 
+#Load data into a file
 data.train = data.load(data.file_train, format='specific_age_gender')
 if data.file_development != '':
   data.development = data.load(data.file_development, format='specific_age_gender')
 if data.file_test != '':
   data.test = data.load(data.file_test, format='specific_age_gender')
 
-#specify the format from the loaded files to transform it to X and Y
+#Step 8.2: Formulate the preprocessing steps which have to be done
 textPreprocessing = ['replaceTwitterInstagram', 'replaceTwitterURL', 'replaceSpecialCharacters', 'maxCharacterSequence']
+
+#Step 8.3: Transform the data to our desired format
 data.transform(_type='YXrow', preprocessing=textPreprocessing) #> now we got X, Y and X_train, Y_train, X_development, Y_development and X_test
 
-#data.subset(500, 50, 50) #to make a subset of the data (train_size, development_size, test_size)
+#Step 8.4: For training purposes, we can specify what our subset will look like (train_size, development_size, test_size)
+#data.subset(500, 50, 50)
 
-#only for sklearn: if wanted, you can edit your features here to specify features for all classifiers. Otherwise, you can just edit the classifier files.
+#Step 9: Specify the features to use, this part is merely for sklearn.
 features = ClassifierFeatures()
 #features.add('wordCount', TextFeatures.wordCount())
-features.add('word', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeTweet, lowercase=False, analyzer='word', stop_words=sw.words('english'), ngram_range=(1,20), min_df=1)),#, max_features=100000)),
+features.add('char', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeTweet, lowercase=False, analyzer='char', ngram_range=(3,5), min_df=1)),#, max_features=100000)),
+features.add('word', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeTweet, lowercase=False, analyzer='word', ngram_range=(1,2), min_df=1)),#, max_features=100000)),
 
-#if you want, you can even specify your own classifier (such as SVC() with paramaters)
+#Step 10: Specify the classifier you want to use (additionaly!)
 #new_classifier = LinearSVC()
 new_classifier = None
 
-printer.labelDistribution(data.Y_train, 'Training Set')
+if options.args.print_details >= 2:
+  printer.labelDistribution(data.Y_train, 'Training Set')
 
+#Step 11: Run our system.
 if len(data.labels) > 1: #otherwise, there is nothing to train
-  if options.args.k > 1:
-    kfold = KFoldValidation(options.args.k, options.args.method, data, features._list, new_classifier)
-    kfold.printBasicEvaluation()
+  run(options.args.k, options.args.method, data, features._list, printer, new_classifier, options.args.print_details, options.args.show_fitting)
 
-  else:
-    classifier = classifier(options.args.method, data)
-    classifier.classify(features._list, new_classifier)
-    classifier.evaluate()
-    classifier.printBasicEvaluation()
-    classifier.printClassEvaluation()
-
-    #writeResults(options.args.predict_languages, classifier.Y_development, classifier.Y_development_predicted, 'development')
-    printer.confusionMatrix(classifier.Y_development, classifier.Y_development_predicted, data.labels)
   printer.duration()
 else:
   print('The combination of the language <{}> and the variable <{}> only have one label. Thus, there is nothing to train. Try another combination!'.format(predict_languages, args.predict_label))

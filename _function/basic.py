@@ -8,6 +8,28 @@ from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix
 
+#Function to run our system, just for a clean main.py, as we do not want to change this.
+def run(k, method, data, features, printer, new_classifier=None, print_details=1, show_fitting=False):
+  if k > 1:
+    from _class.validation import KFoldValidation
+    kfold = KFoldValidation(k, method, data, features, new_classifier, print_details, show_fitting)
+
+    if print_details >= 1:
+      kfold.printBasicEvaluation()
+
+  else:
+    c = classifier(method, data, show_fitting)
+    c.classify(features, new_classifier)
+    c.evaluate()
+    if print_details >= 1:
+      c.printBasicEvaluation()
+    if print_details >= 2:
+      c.printClassEvaluation()
+
+    #writeResults(options.args.predict_languages, classifier.Y_development, classifier.Y_development_predicted, 'development')
+    if print_details >= 3:
+      printer.confusionMatrix(c.Y_development, c.Y_development_predicted, data.labels)
+
 ### Function to return average of a list
 ### input(list)
 def avg(l):
@@ -48,25 +70,25 @@ def metrics(Y_test, Y_predicted, labels):
 
   return accuracy, precision, recall, f1score
 
-def classifier(method, data):
+def classifier(method, data, show_fitting):
   if method == 'bayes':
     from classifier.naiveBayes import NaiveBayes
-    return NaiveBayes(data) 
+    return NaiveBayes(data, show_fitting) 
   elif method == 'svm':
     from classifier.svm import SVM
-    return SVM(data) 
+    return SVM(data, show_fitting) 
   elif method == 'knear':
     from classifier.kNeighbors import KNeighbors
-    return KNeighbors(data)
+    return KNeighbors(data, show_fitting)
   elif method == 'tree':
     from classifier.decisionTree import DecisionTree
-    return DecisionTree(data)
+    return DecisionTree(data, show_fitting)
   elif method == 'neural':
     from classifier.neuralNetwork import NeuralNetwork
-    return NeuralNetwork(data)
+    return NeuralNetwork(data, show_fitting)
   elif method == 'baseline':
     from classifier.baseline import Baseline
-    return Baseline(data)
+    return Baseline(data, show_fitting)
   else:
     return 'Not a valid classification method!'
 

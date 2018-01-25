@@ -15,8 +15,8 @@ from keras.layers import LSTM
     
 from sklearn.model_selection import train_test_split
 
-from function.basic import metrics, unskewedTrain
-from function.printer import Printer
+from _function.basic import metrics, unskewedTrain
+from _class.printer import Printer
 from text.tokenizer import TextTokenizer
 
 
@@ -30,7 +30,7 @@ class NeuralNetwork:
   
   Y = []
 
-  def __init__(self, data):
+  def __init__(self, data, show_fitting):
     self.data = data
 
     self.X = self.data.X
@@ -42,6 +42,8 @@ class NeuralNetwork:
 
     for label in self.data.Y:
       self.Y.append(self.labels_dict[label])
+    
+    self.show_fitting = show_fitting
 
 
   def tokenize(self):
@@ -64,6 +66,7 @@ class NeuralNetwork:
     self.X_development = self.X[train_development_split:development_test_split]
     self.Y_development = self.Y[train_development_split:development_test_split]
 
+    
     self.X_test = self.X[development_test_split:]
 
     if self.data.avoid_skewness:
@@ -90,12 +93,13 @@ class NeuralNetwork:
                   metrics=['accuracy']) 
 	
     # Train the model 
-    self.printer = Printer('Model Fitting')
+    self.printer = Printer('Model Fitting', self.show_fitting)
     self.model.fit(self.X_train, self.Y_train, epochs = 2, batch_size = 128, validation_split = 0.2)
     self.printer.duration()
 
   def evaluate(self):
     self.Y_development_predicted = self.model.predict(self.X_development)
+
     self.Y_development_predicted = np.argmax(self.Y_development_predicted, axis=1)
     self.Y_development_predicted = [self.labels_dict_rev[int(i)] for i in list(self.Y_development_predicted)]
     

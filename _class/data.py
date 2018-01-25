@@ -47,11 +47,11 @@ class Data:
         X_all.append(X)
         Y_all.append(Y)
         self.preprocessor(X, preprocessing)
-
+  
       self.X_train, self.X_development, self.Y_train, self.Y_development = train_test_split(X_all, Y_all, test_size=0.20, random_state=42)
       self.X_test = self.X_development
       self.Y_test = self. Y_development
-
+      
     else:
       if self.file_train != '':
         for Y, X in self.train:
@@ -117,16 +117,11 @@ class Data:
       self.labels = sorted(self.labels)
 
   def createXY(self):
-    if self.file_train != '':
-      self.X = copy.copy(self.X_train)
-      self.Y = copy.copy(self.Y_train)
-  
-    if self.file_development != '':
-      self.X.extend(self.X_development)
-      self.Y.extend(self.Y_development)
-    
-    if self.file_test != '':
-      self.X.extend(self.X_test)
+    self.X = copy.copy(self.X_train)
+    self.Y = copy.copy(self.Y_train)
+    self.X.extend(self.X_development)
+    self.Y.extend(self.Y_development)
+    self.X.extend(self.X_test)
 
   def load(self, file_name, format):
     if format == 'pickle':

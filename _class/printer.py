@@ -12,32 +12,34 @@ from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 
-from function.basic import keyCounter
-from function.basic import metrics
+from _function.basic import keyCounter
+from _function.basic import metrics
 
 class Printer:
 
-  def __init__(self, scope):
+  def __init__(self, scope, show=True):
     self.start_time = datetime.datetime.now()
     self.scope = scope
+    self.show = show
     self.start()
-
 
   def tabFill(self, text, value = None):
     if value == None:
       if len(text) > 20:
-        return '\t\t\t\t\t\t' #6 tabs if 21 characters
+        return '\t\t\t\t\t\t\t\t' #6 tabs if 21 characters
       else:
-        return '\t\t\t'
+        return '\t\t\t\t\t'
     else: 
-      if len(str(value)) > 20:
-        return '\t'
-      if len(str(value)) > 15:
+      if len(str(value)) > 30:
         return '\t\t'
-      elif len(str(value)) > 5:
+      if len(str(value)) > 20:
         return '\t\t\t'
-      else:
+      if len(str(value)) > 15:
         return '\t\t\t\t'
+      elif len(str(value)) > 5:
+        return '\t\t\t\t\t'
+      else:
+        return '\t\t\t\t\t\t'
 
   def tabSpace(self, text):
     if len(text) > 13:
@@ -53,7 +55,7 @@ class Printer:
 
     text = args['title'] + ' Output'
 
-    print('#'*91)
+    print('#'*107)
     print('{} \t {} {} {}'.format('#'*10, text, self.tabFill(text), '#'*10))
 
     for name in args:
@@ -68,12 +70,12 @@ class Printer:
         end_tabs = '\t\t'
 
         print('{} \t {} {} {} {} {}'.format(tags, name.title(), self.tabSpace(name), value, self.tabFill(name, value), tags))
-    print('#'*91)
+    print('#'*107)
 
 ### Function to print evaluation text of a script
 ### input(accuracy_float, precision_float, recall_float, f1score_float, text_string)
   def evaluation(self, accuracy, precision, recall, f1score, text):    
-    print("~~~" + text + "~~~ \n")
+    print("\n~~~" + text + "~~~ \n")
     print("Accuracy:\t {}".format(round(accuracy, 3)))
     print("Precision:\t {}".format(round(precision, 3)))
     print("Recall:\t\t {}".format(round(recall, 3)))
@@ -124,7 +126,8 @@ class Printer:
 ### Function to print duration of script
 ### input(start, end)
   def start(self):
-    print('\n{}. Start time: {}\n'.format(self.scope, self.start_time.strftime('%Y-%m-%d, %H:%M:%S')))
+    if self.show:
+      print('\n{}. Start time: {}\n'.format(self.scope, self.start_time.strftime('%Y-%m-%d, %H:%M:%S')))
 
 ### Function to print duration of script
 ### input(start, end)
@@ -134,29 +137,48 @@ class Printer:
     time = divmod(self.total_time.days * 86400 + self.total_time.seconds, 60)
     self.minutes = time[0]
     self.seconds = time[1]
-    print('\n{}. Run time: {} minutes and {} seconds'.format(self.scope, self.minutes, self.seconds))
-    print('{}. End time: {}\n'.format(self.scope, self.end_time.strftime('%Y-%m-%d, %H:%M:%S')))
+
+    if self.show:
+      print('\n{}. Run time: {} minutes and {} seconds'.format(self.scope, self.minutes, self.seconds))
+      print('{}. End time: {}\n'.format(self.scope, self.end_time.strftime('%Y-%m-%d, %H:%M:%S')))
 
   
-  def confusionMatrix(self, Y_test, Y_predicted, labels):
+  def confusionMatrix(self, Y_test, Y_predicted, labels, hide_zeroes=False, hide_diagonal=False, hide_threshold=None):
     print('\n~~~Confusion Matrix ~~~\n')
     matrix = sklearn.metrics.confusion_matrix(Y_test, Y_predicted, labels=labels)
-    #print(matrix)
-
-    matrix_normalized = np.transpose(np.transpose(matrix) / matrix.astype(np.float).sum(axis=1))
-    #print(matrix_normalized.round(2)) #horizontal = predicted; vertical = true label
+    cm = np.transpose(np.transpose(matrix) / matrix.astype(np.float).sum(axis=1))
     
-    for item in labels:
-      if item == labels[0]:
-        print("{:>9s}".format(item), end="")
-      else:
-        print("{:>9s}".format(item), end="")
+    # for item in labels:
+    #   if item == labels[0]:
+    #     print("{:>9s}".format(item), end="")
+    #   else:
+    #     print("{:>9s}".format(item), end="")
 
-    for i,line in enumerate(matrix_normalized):
-      print()
-      print("{:<2s}".format(labels[i]), end="")
-      for item in line:
-        print("{:8.2f}".format(item), end="")
+    # for i,line in enumerate(matrix_normalized):
+    #   print()
+    #   print("{:<2s}".format(labels[i]), end="")
+    #   for item in line:
+    #     print("{:8.2f}".format(item), end="")
 
+    # print()
 
+    columnwidth = max([len(x) for x in labels] + [5])  # 5 is value length
+    empty_cell = " " * columnwidth
+    # Print header
+    print("    " + empty_cell, end=" ")
+    for label in labels:
+        print("%{0}s".format(columnwidth) % label, end=" ")
     print()
+    # Print rows
+    for i, label1 in enumerate(labels):
+        print("    %{0}s".format(columnwidth) % label1, end=" ")
+        for j in range(len(labels)):
+            cell = "%{0}.2f".format(columnwidth) % cm[i, j]
+            if hide_zeroes:
+                cell = cell if float(cm[i, j]) != 0 else empty_cell
+            if hide_diagonal:
+                cell = cell if i != j else empty_cell
+            if hide_threshold:
+                cell = cell if cm[i, j] > hide_threshold else empty_cell
+            print(cell, end=" ")
+        print()
