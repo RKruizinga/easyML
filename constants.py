@@ -20,7 +20,6 @@ class Constants:
     'help': 'Random Seed number'
   }
 
-
   predict_label = {
     'name': 'predict_label',
     'type': str,
@@ -36,7 +35,7 @@ class Constants:
   }
 
   KFold = {
-    'name': 'KFold',
+    'name': 'k',
     'type': int,
     'default': 1,
     'help': 'Cross validation K'
