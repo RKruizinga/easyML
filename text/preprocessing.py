@@ -10,6 +10,10 @@ class TextPreprocessing:
       return TextPreprocessing.replaceSpecialCharacters(X)
     elif method == 'maxCharacterSequence':
       return TextPreprocessing.maxCharacterSequence(X)
+    elif method == 'replaceDate':
+      return TextPreprocessing.maxCharacterSequence(X)
+    elif method == 'replaceYear':
+      return TextPreprocessing.maxCharacterSequence(X)
     else:
       return X
 
@@ -25,3 +29,9 @@ class TextPreprocessing:
 
   def maxCharacterSequence(X):
     return re.sub(r'(.)\1{2,}', r'\1\1\1', X)
+  
+  def replaceDate(X):
+    return re.sub(r'\d+\-\d+\-\d+', 'DATE', X)
+  
+  def replaceYear(X):
+    return re.sub(r'[0-2][0-9]{3}', 'YEAR', X)

@@ -9,27 +9,29 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing import sequence
 from keras.utils import to_categorical
 from keras.models import Model, Sequential
-from keras.layers import Dense, Input, Flatten, Dropout
+from keras.layers import Dense, Input, Flatten, Dropout, Activation
 from keras.layers import Embedding
-from keras.layers import LSTM
+from keras.layers import LSTM, Bidirectional
     
 from sklearn.model_selection import train_test_split
 
 from _function.basic import metrics, unskewedTrain
 from _class.printer import Printer
 from text.tokenizer import TextTokenizer
-
+from _function.custom import writeWordEmbeddings, readWordEmbeddings
 
 class NeuralNetwork:
   word_embeddings_file = 'data/word_embeddings/glove.twitter.27B/glove.twitter.27B.200d.txt'
   word_embeddings_dim = 200
+  word_embeddings_layer = None
+  word_embeddings_index = {}
 
   labels = []
   labels_dict = {}
   labels_dict_rev = {}
   
   Y = []
-
+  
   def __init__(self, data, show_fitting):
     self.data = data
 
@@ -77,15 +79,18 @@ class NeuralNetwork:
       self.X_train = np.array(self.X_train)
       self.Y_train = np.array(self.Y_train)
 
-    self.createWordEmbeddings()
+    self.word_embeddings_layer, self.word_embeddings_index = readWordEmbeddings(self.data.languages, self.data.response_variable)
+    if self.word_embeddings_layer == None:
+      self.createWordEmbeddings()
 
     self.printDataInformation()
 
     ##CHANGE OPTIONS HERE
     self.model = Sequential()
     self.model.add(self.word_embeddings_layer)
-    self.model.add(LSTM(self.word_embeddings_dim))
+    self.model.add(Bidirectional(LSTM(self.word_embeddings_dim)))
     self.model.add(Dropout(0.2))
+    self.model.add(Activation('softmax'))
     self.model.add(Dense(self.Y.shape[1], activation='sigmoid'))
 
     self.model.compile(loss='categorical_crossentropy',
@@ -94,7 +99,7 @@ class NeuralNetwork:
 	
     # Train the model 
     self.printer = Printer('Model Fitting', self.show_fitting)
-    self.model.fit(self.X_train, self.Y_train, epochs = 2, batch_size = 128, validation_split = 0.2)
+    self.model.fit(self.X_train, self.Y_train, epochs = 5, batch_size = 128, validation_split = 0.2)
     self.printer.duration()
 
   def evaluate(self):
@@ -143,6 +148,9 @@ class NeuralNetwork:
 
     self.word_embeddings_layer = Embedding(len(self.tokenizer.word_index) + 1, self.word_embeddings_dim, mask_zero = True, weights=[self.word_embeddings_matrix], trainable = True)
 
+    writeWordEmbeddings(self.word_embeddings_layer, self.word_embeddings_index, self.data.languages, self.data.response_variable)
+
+    
 
     
     

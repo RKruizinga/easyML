@@ -3,6 +3,7 @@ import random
 import os
 import time
 import numpy as np
+import pickle
 
 ### Custom feature to find the language of shortened text
 ### input(Y_test_list, Y_predicted_list, labels_list)
@@ -26,7 +27,7 @@ def languages(argument_languages):
 ### Function to write results to file
 ### input()
 def writeResults(language, Y, Y_predicted, name):
-  cur_date = time.strftime("%Y_%U")
+  cur_date = time.strftime("%Y_%m")
   cur_time = time.strftime("%H_%M_%S")
 
   if not os.path.exists('output/'+str(cur_date)):
@@ -44,6 +45,42 @@ def writeResults(language, Y, Y_predicted, name):
   for i in Y_predicted:
     Y_predicted_output.write(i)
     Y_predicted_output.write("\n") 
+
+def writeWordEmbeddings(word_embeddings, word_embeddings_index, var1, var2):
+  cur_date = time.strftime("%Y_%m")
+  cur_time = time.strftime("%H")
+
+  if type(var1) == list:
+    var1 = '_'.join(var1)
+
+  if not os.path.exists('output/word_embeddings'):
+    os.makedirs('output/word_embeddings')
+
+  if not os.path.exists('output/word_embeddings/'+str(cur_date)):
+    os.makedirs('output/word_embeddings/'+str(cur_date))
+  
+  if not os.path.exists('output/word_embeddings/'+str(str(cur_date) + '/' + str(cur_time))):
+    os.makedirs('output/word_embeddings/'+str(str(cur_date) + '/' + str(cur_time)))
+
+  open_file_we = open('output/word_embeddings/'+str(cur_date) + '/' + str(cur_time) + '/' + var1 +'_'+ var2 + '_word_embeddings.pickle', 'wb') 
+  pickle.dump(word_embeddings, open_file_we)
+  open_file_wei = open('output/word_embeddings/'+str(cur_date) + '/' + str(cur_time) + '/' + var1 +'_'+ var2 + '_word_embeddings_index.pickle', 'wb') 
+  pickle.dump(word_embeddings_index, open_file_wei)
+
+def readWordEmbeddings(var1, var2):
+  cur_date = time.strftime("%Y_%m")
+  cur_time = time.strftime("%H")
+
+  if type(var1) == list:
+    var1 = '_'.join(var1)
+
+  try:
+    open_file_we = open('output/word_embeddings/'+str(cur_date) + '/' + str(cur_time) + '/' + var1 +'_'+ var2 +'_word_embeddings.pickle', 'rb')
+    open_file_wei = open('output/word_embeddings/'+str(cur_date) + '/' + str(cur_time) + '/' + var1 +'_'+ var2 +'_word_embeddings_index.pickle', 'rb')
+    
+    return pickle.load(open_file_we), pickle.load(open_file_wei)
+  except:
+    return None, None
 
 ### Function to print confusion matrix of classes
 ### input(Y_test_list, Y_predicted_list, labels_list)

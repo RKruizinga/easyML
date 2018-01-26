@@ -48,7 +48,7 @@ class Data:
         Y_all.append(Y)
         self.preprocessor(X, preprocessing)
   
-      self.X_train, self.X_development, self.Y_train, self.Y_development = train_test_split(X_all, Y_all, test_size=0.20, random_state=42)
+      self.X_train, self.X_development, self.Y_train, self.Y_development = train_test_split(X_all, Y_all, test_size=0.2, random_state=42)
       self.X_test = self.X_development
       self.Y_test = self. Y_development
       
