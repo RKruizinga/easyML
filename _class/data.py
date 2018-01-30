@@ -9,7 +9,7 @@ import pickle
 import random
 
 from text.preprocessing import TextPreprocessing
-
+from _function.basic import keyCounter
 from sklearn.model_selection import train_test_split
 
 class Data:
@@ -73,7 +73,7 @@ class Data:
           self.preprocessor(X, preprocessing)
 
     if self.avoid_skewness:
-        self.getSubsetUnskewedTrain()
+        self.X_train, self.Y_train = self.getSubsetUnskewedTrain(self.X_train, self.Y_train)
 
     self.amount_train = len(self.X_train) 
     self.amount_development = len(self.X_development)  
@@ -214,7 +214,7 @@ class Data:
   ### Function to make train dataset unskewed
   ### input(X_train_list, Y_train_list, Y_train_raw_list)
   def getSubsetUnskewedTrain(self, X_train, Y_train):
-    data_distribution = BasicFunctions.keyCounter(Y_train)
+    data_distribution = keyCounter(Y_train)
     Y = Y_train
 
     lowest_amount = 0
@@ -239,8 +239,7 @@ class Data:
       new_X_train.append(X_train[i])
       new_Y_train.append(Y_train[i])
 
-    self.X_train = new_X_train
-    self.Y_train = new_Y_train
+    return new_X_train, new_Y_train
 
 
 
