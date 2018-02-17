@@ -13,7 +13,7 @@ from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 
 from _function.basic import keyCounter
-from _function.basic import metrics
+from _function.basic import classificationMetrics
 
 class Printer:
 
@@ -34,7 +34,7 @@ class Printer:
         return '\t\t'
       if len(str(value)) > 20:
         return '\t\t\t'
-      if len(str(value)) > 15:
+      if len(str(value)) > 13:
         return '\t\t\t\t'
       elif len(str(value)) > 5:
         return '\t\t\t\t\t'
@@ -81,6 +81,11 @@ class Printer:
     print("Recall:\t\t {}".format(round(recall, 3)))
     print("F1-Score:\t {}".format(round(f1score, 3)))
 
+  def regressionEvaluation(self, mean_abs_err, mean_squ_err, r2score, text):
+    print("\n~~~" + text + "~~~ \n")
+    print("Mean Absolute Error\t {}".format(round(mean_abs_err, 3)))
+    print("Mean Squared Error\t {}".format(round(mean_squ_err, 3)))
+    print("R2-score:\t\t {}".format(round(r2score, 3)))
 
 ### Function to print evaluation text of a script
 ### input(Y_test_list, Y_predicted_list, labels_list)
@@ -90,7 +95,7 @@ class Printer:
     print("Class \t Precision \t Recall \t F-score")
 
     for label in labels:
-      accuracy, precision, recall, f1score = metrics(Y_test, Y_predicted, [label])
+      accuracy, precision, recall, f1score = classificationMetrics(Y_test, Y_predicted, [label])
       print('{} \t {} \t\t {} \t\t {}'.format(
         label,
         round(precision, 3),

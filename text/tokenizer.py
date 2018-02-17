@@ -1,10 +1,14 @@
 from nltk.tokenize import TweetTokenizer
+from nltk.tokenize import sent_tokenize, word_tokenize
 
 class TextTokenizer: #collection class of different tokenizers
   def tokenizeTweet(arg):
 	  tokenizer = TweetTokenizer(strip_handles=True, reduce_len=True)
 	  return tokenizer.tokenize(arg)
-    
+  
+  def tokenizeText(arg):
+    return word_tokenize(arg)
+
 ### Tokenize tweets for neural networks
   def tokenizeTweets(tweets):
     tokenized_tweets = []

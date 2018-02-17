@@ -11,7 +11,7 @@ class KFoldValidation:
     recall = []
     f1score = []
 
-    def __init__(self, k, method, data, features, new_classifier, print_details, show_fitting):
+    def __init__(self, k, method, data, features, predict_method, new_classifier, print_details, show_fitting):
       self.k = k
       self.kf = KFold(n_splits=self.k)
 
@@ -23,9 +23,11 @@ class KFoldValidation:
       self.method = method
       self.data = data
       self.features = features
+      self.predict_method = predict_method
       self.new_classifier = new_classifier
 
       self.validation()
+
     def validation(self):
       i = 0
       for train_index, test_index in self.kf.split(self.data.X[:(self.data.amount_train+self.data.amount_development)]):
@@ -37,7 +39,7 @@ class KFoldValidation:
         Y_train, Y_development = list(np.array(self.data.Y)[train_index]), list(np.array(self.data.Y)[test_index])
         self.data.initialize(X_train, Y_train, X_development, Y_development)
 
-        classifier = selectClassifier(self.method, self.data, self.show_fitting)
+        classifier = selectClassifier(self.method, self.data, self.predict_method, self.show_fitting)
         classifier.classify(self.features, self.new_classifier)
         classifier.evaluate()
 

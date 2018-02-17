@@ -69,7 +69,7 @@ if data.file_test != '':
   data.test = data.load(data.file_test, format='specific_age_gender')
 
 #Step 8.2: Formulate the preprocessing steps which have to be done
-textPreprocessing = ['replaceTwitterInstagram', 'replaceTwitterURL', 'replaceSpecialCharacters', 'maxCharacterSequence']
+textPreprocessing = ['replaceTwitterURL', 'replaceDate', 'replaceYear']
 
 #Step 8.3: Transform the data to our desired format
 data.transform(_type='YXrow', preprocessing=textPreprocessing) #> now we got X, Y and X_train, Y_train, X_development, Y_development and X_test
@@ -92,7 +92,7 @@ if options.args.print_details >= 2:
 
 #Step 11: Run our system.
 if len(data.labels) > 1: #otherwise, there is nothing to train
-  run(options.args.k, options.args.method, data, features._list, printer, new_classifier, options.args.print_details, options.args.show_fitting)
+  run(options.args.k, options.args.method, data, features._list, printer, options.args.predict_method, new_classifier, options.args.print_details, options.args.show_fitting)
 
   printer.duration()
 else:

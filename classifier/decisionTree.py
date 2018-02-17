@@ -3,7 +3,7 @@ from sklearn.tree import DecisionTreeClassifier
 import sklearn
 from sklearn.pipeline import Pipeline, FeatureUnion
 
-from _function.basic import metrics
+from _function.basic import classificationMetrics
 from _class.printer import Printer
 
 class DecisionTree:
@@ -19,7 +19,7 @@ class DecisionTree:
 
   features = []
 
-  def __init__(self, data, show_fitting):
+  def __init__(self, data, predict_method, show_fitting):
 
     self.X_train = data.X_train
     self.Y_train = data.Y_train
@@ -31,6 +31,7 @@ class DecisionTree:
 
     self.labels = data.labels
 
+    self.predict_method = predict_method
     self.show_fitting =show_fitting
 
   def classify(self, features, classifier=None):
@@ -56,7 +57,7 @@ class DecisionTree:
     if self.X_test:
       self.Y_test_predicted = self.classifier.predict(self.X_test)
 
-    self.accuracy, self.precision, self.recall, self.f1score = metrics(self.Y_development, self.Y_development_predicted, self.labels)
+    self.accuracy, self.precision, self.recall, self.f1score = classificationMetrics(self.Y_development, self.Y_development_predicted, self.labels)
 
   def printBasicEvaluation(self):    
     self.printer.evaluation(self.accuracy, self.precision, self.recall, self.f1score, "Basic Evaluation")

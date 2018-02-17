@@ -88,7 +88,7 @@ if options.args.print_details >= 2:
 
 #Step 11: Run our system.
 if len(data.labels) > 1: #otherwise, there is nothing to train
-  run(options.args.k, options.args.method, data, features._list, printer, new_classifier, options.args.print_details, options.args.show_fitting)
+  run(options.args.k, options.args.method, data, features._list, printer, options.args.predict_method, new_classifier, options.args.print_details, options.args.show_fitting)
 
   printer.duration()
 else:

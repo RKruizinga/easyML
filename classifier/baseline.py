@@ -1,7 +1,7 @@
 import numpy as np
 
 import sklearn
-from _function.basic import metrics, keyCounter
+from _function.basic import classificationMetrics, keyCounter
 from _class.printer import Printer
 
 class Baseline:
@@ -16,7 +16,7 @@ class Baseline:
 
   features = []
 
-  def __init__(self, data, show_fitting):
+  def __init__(self, data, predict_method, show_fitting):
     self.X_train = data.X_train
     self.Y_train = data.Y_train
 
@@ -27,6 +27,7 @@ class Baseline:
 
     self.labels = data.labels
 
+    self.predict_method = predict_method
     self.show_fitting = show_fitting
 
     self.classifier = Classifier()
@@ -42,7 +43,7 @@ class Baseline:
     if self.X_test:
       self.Y_test_predicted = self.classifier.predict(self.X_test)
 
-    self.accuracy, self.precision, self.recall, self.f1score = metrics(self.Y_development, self.Y_development_predicted, self.labels)
+    self.accuracy, self.precision, self.recall, self.f1score = classificationMetrics(self.Y_development, self.Y_development_predicted, self.labels)
 
   def printBasicEvaluation(self):    
     self.printer.evaluation(self.accuracy, self.precision, self.recall, self.f1score, "Basic Evaluation")

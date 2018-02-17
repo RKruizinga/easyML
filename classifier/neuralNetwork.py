@@ -15,7 +15,7 @@ from keras.layers import LSTM, Bidirectional
     
 from sklearn.model_selection import train_test_split
 
-from _function.basic import metrics, unskewedTrain
+from _function.basic import classificationMetrics, unskewedTrain
 from _class.printer import Printer
 from text.tokenizer import TextTokenizer
 from _function.custom import writeWordEmbeddings, readWordEmbeddings
@@ -32,7 +32,7 @@ class NeuralNetwork:
   
   Y = []
   
-  def __init__(self, data, show_fitting):
+  def __init__(self, data, predict_method, show_fitting):
     self.data = data
 
     self.X = self.data.X
@@ -42,9 +42,11 @@ class NeuralNetwork:
       self.labels_dict[label] = i
       self.labels_dict_rev[i] = label
 
+    self.Y = []
     for label in self.data.Y:
       self.Y.append(self.labels_dict[label])
     
+    self.predict_method = predict_method
     self.show_fitting = show_fitting
 
 
@@ -88,9 +90,8 @@ class NeuralNetwork:
     ##CHANGE OPTIONS HERE
     self.model = Sequential()
     self.model.add(self.word_embeddings_layer)
-    self.model.add(Bidirectional(LSTM(self.word_embeddings_dim)))
     self.model.add(Dropout(0.2))
-    self.model.add(Activation('softmax'))
+    self.model.add(LSTM(self.word_embeddings_dim))
     self.model.add(Dense(self.Y.shape[1], activation='sigmoid'))
 
     self.model.compile(loss='categorical_crossentropy',
@@ -111,7 +112,7 @@ class NeuralNetwork:
     self.Y_development = np.argmax(self.Y_development, axis=1)
     self.Y_development = [self.labels_dict_rev[int(i)] for i in list(self.Y_development)]
 
-    self.accuracy, self.precision, self.recall, self.f1score = metrics(self.Y_development, self.Y_development_predicted, self.labels)
+    self.accuracy, self.precision, self.recall, self.f1score = classificationMetrics(self.Y_development, self.Y_development_predicted, self.labels)
 
   def printBasicEvaluation(self):    
     self.printer.evaluation(self.accuracy, self.precision, self.recall, self.f1score, "Basic Evaluation")

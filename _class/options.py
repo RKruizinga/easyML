@@ -15,6 +15,7 @@ class Options:
     self.add(name=con.data_folder['name'], _type=con.data_folder['type'], _default=con.data_folder['default'], _help=con.data_folder['help'])
     self.add(name=con.data_method['name'], _type=con.data_method['type'], _default=con.data_method['default'], _help=con.data_method['help'])
     self.add(name=con.predict_label['name'], _type=con.predict_label['type'], _default=con.predict_label['default'], _help=con.predict_label['help'])
+    self.add(name=con.predict_method['name'], _type=con.predict_method['type'], _default=con.predict_method['default'], _help=con.predict_method['help'])
 
   def add(self, name, _type, _default, _help):
     self.parser.add_argument(

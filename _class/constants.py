@@ -76,5 +76,11 @@ class Constants:
     'help': 'Should we show the time that the system fits the model?'
   }
 
+  predict_method = {
+    'name': 'predict_method',
+    'type': str,
+    'default': 'classification',
+    'help': 'What do you want to predict? (regression, classes, clusters)'
+  }
   def __init__(self):
     pass

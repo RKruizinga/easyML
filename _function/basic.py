@@ -6,19 +6,22 @@ import sklearn
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
 from sklearn.metrics import confusion_matrix
 
 #Function to run our system, just for a clean main.py, as we do not want to change this.
-def run(k, method, data, features, printer, new_classifier=None, print_details=1, show_fitting=False):
+def run(k, method, data, features, printer, predict_method, new_classifier=None, print_details=1, show_fitting=False):
   if k > 1:
     from _class.validation import KFoldValidation
-    kfold = KFoldValidation(k, method, data, features, new_classifier, print_details, show_fitting)
+    kfold = KFoldValidation(k, method, data, features, predict_method, new_classifier, print_details, show_fitting)
 
     if print_details >= 1:
       kfold.printBasicEvaluation()
 
   else:
-    c = classifier(method, data, show_fitting)
+    c = classifier(method, data, predict_method, show_fitting)
     c.classify(features, new_classifier)
     c.evaluate()
     if print_details >= 1:
@@ -42,7 +45,7 @@ def keyCounter(l):
 
 ### Function to print evaluation text of a script
 ### input(Y_test_list, Y_predicted_list, labels_list)
-def metrics(Y_test, Y_predicted, labels):
+def classificationMetrics(Y_test, Y_predicted, labels):
   accuracy_count = 0
   for i in range(0, len(Y_predicted)):
     if Y_predicted[i] == Y_test[i]:
@@ -70,25 +73,35 @@ def metrics(Y_test, Y_predicted, labels):
 
   return accuracy, precision, recall, f1score
 
-def classifier(method, data, show_fitting):
+### Function to print evaluation text of a script
+### input(Y_test_list, Y_predicted_list, labels_list)
+def regressionMetrics(Y_test, Y_predicted, labels):
+  print(Y_test[:30], Y_predicted[:30])
+  r2score = sklearn.metrics.r2_score(Y_test, Y_predicted)
+  mean_abs_err = sklearn.metrics.mean_absolute_error(Y_test, Y_predicted)
+  mean_squ_err = sklearn.metrics.mean_squared_error(Y_test, Y_predicted)
+
+  return mean_abs_err, mean_squ_err, r2score
+
+def classifier(method, data, predict_method, show_fitting):
   if method == 'bayes':
     from classifier.naiveBayes import NaiveBayes
-    return NaiveBayes(data, show_fitting) 
+    return NaiveBayes(data, predict_method, show_fitting) 
   elif method == 'svm':
     from classifier.svm import SVM
-    return SVM(data, show_fitting) 
+    return SVM(data, predict_method, show_fitting) 
   elif method == 'knear':
     from classifier.kNeighbors import KNeighbors
-    return KNeighbors(data, show_fitting)
+    return KNeighbors(data, predict_method, show_fitting)
   elif method == 'tree':
     from classifier.decisionTree import DecisionTree
-    return DecisionTree(data, show_fitting)
+    return DecisionTree(data, predict_method, show_fitting)
   elif method == 'neural':
     from classifier.neuralNetwork import NeuralNetwork
-    return NeuralNetwork(data, show_fitting)
+    return NeuralNetwork(data, predict_method, show_fitting)
   elif method == 'baseline':
     from classifier.baseline import Baseline
-    return Baseline(data, show_fitting)
+    return Baseline(data, predict_method, show_fitting)
   else:
     return 'Not a valid classification method!'
 

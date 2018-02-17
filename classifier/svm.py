@@ -3,7 +3,9 @@ from sklearn.linear_model import SGDClassifier
 import sklearn
 from sklearn.pipeline import Pipeline, FeatureUnion
 
-from _function.basic import metrics
+from _function.basic import classificationMetrics
+from _function.basic import regressionMetrics
+
 from _class.printer import Printer
 
 class SVM:
@@ -19,7 +21,7 @@ class SVM:
 
   features = []
 
-  def __init__(self, data, show_fitting):
+  def __init__(self, data, predict_method, show_fitting):
 
     self.X_train = data.X_train
     self.Y_train = data.Y_train
@@ -31,6 +33,7 @@ class SVM:
 
     self.labels = data.labels
 
+    self.predict_method = predict_method
     self.show_fitting =show_fitting
 
   def classify(self, features, classifier=None):
@@ -57,10 +60,16 @@ class SVM:
     if self.X_test:
       self.Y_test_predicted = self.classifier.predict(self.X_test)
 
-    self.accuracy, self.precision, self.recall, self.f1score = metrics(self.Y_development, self.Y_development_predicted, self.labels)
+    if self.predict_method == 'classification':
+      self.accuracy, self.precision, self.recall, self.f1score = classificationMetrics(self.Y_development, self.Y_development_predicted, self.labels)
+    elif self.predict_method == 'regression':
+      self.mean_abs_err, self.mean_squ_err, self.r2score = regressionMetrics(self.Y_development, self.Y_development_predicted, self.labels)
 
-  def printBasicEvaluation(self):    
-    self.printer.evaluation(self.accuracy, self.precision, self.recall, self.f1score, "Basic Evaluation")
+  def printBasicEvaluation(self):
+    if self.predict_method == 'classification':
+      self.printer.evaluation(self.accuracy, self.precision, self.recall, self.f1score, "Classification Evaluation")
+    elif self.predict_method == 'regression':
+      self.printer.regressionEvaluation(self.mean_abs_err, self.mean_squ_err, self.r2score, "Regression Evaluation")
 
   def printClassEvaluation(self):
     self.printer.classEvaluation(self.Y_development, self.Y_development_predicted, self.labels)

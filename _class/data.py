@@ -5,12 +5,14 @@ import copy
 
 import re
 import pickle 
+import csv
 
 import random
 
 from text.preprocessing import TextPreprocessing
 from _function.basic import keyCounter
 from sklearn.model_selection import train_test_split
+from sklearn import preprocessing
 
 class Data:
 
@@ -43,6 +45,7 @@ class Data:
     if self.file_train != '' and self.file_development == '':
       X_all = []
       Y_all = []
+
       for Y, X in self.train:
         X_all.append(X)
         Y_all.append(Y)
@@ -79,6 +82,19 @@ class Data:
     self.amount_development = len(self.X_development)  
     self.amount_test = len(self.X_test)  
 
+  def transformX(self, X):
+    new_X = {}
+    if type(X[0]) == dict:
+      for row in X:
+        for var in row:
+          if var not in new_X:
+            new_X[var] = []
+          new_X[var].append(row[var])
+      return new_X
+    else:
+      return X
+          
+    
   def initialize(self, X_train, Y_train, X_development, Y_development):
 
     self.X_train = X_train
@@ -98,6 +114,10 @@ class Data:
     self.amount_development = len(self.X_development)  
     self.amount_test = len(self.X_test)  
 
+    self.X_train = self.transformX(self.X_train)
+    self.X_development = self.transformX(self.X_development)
+    self.X_test = self.transformX(self.X_test)
+
   ## transform file(s) to Y, X
   def transform(self, _type='YXrow', preprocessing=None):
     if _type == 'YXrow':
@@ -106,7 +126,12 @@ class Data:
       pass
     
     self.createXY()
+    #print(self.Y)
     self.labels = list(set(self.Y)) 
+
+    self.X_train = self.transformX(self.X_train)
+    self.X_development = self.transformX(self.X_development)
+    self.X_test = self.transformX(self.X_test)
 
     try:
       if int(self.labels[0]):
@@ -128,6 +153,137 @@ class Data:
       return pickle.load(open('./'+self.data_folder+file_name, 'rb'))
     elif format == 'specific_age_gender':
       return self.ageGenderLoad(folder=file_name)
+    elif format == 'complex_file':
+      return self.complexLoad(file_name)
+
+  def calculateWeightedImpact(self, var_record_numb, var_record_perc):
+    if type(var_record_numb) == str:
+      var_record_numb = var_record_numb.replace(',', '')
+    return float(var_record_numb) * float(var_record_perc)
+
+  def complexLoad(self, file_name):
+
+    with open(self.data_folder+file_name, 'r' ) as csvfile:
+      reader = csv.DictReader(csvfile,  delimiter='\t')
+      data_dict = {}
+      data_list = []
+
+      i = 0
+      for line in reader:
+        #if i < 500000:
+        temp_row = {}
+        for column in line:  
+          line[column] =  re.sub(r'^€', '', line[column])
+          line[column] =  re.sub(r'%$', '', line[column])
+          if column == 'Quarter' or column == 'Month':
+            line[column] =  re.sub(r' \d{4}$', '', line[column])
+
+          if line[column].isdigit():
+            line[column] = int(line[column])
+          elif re.match("^\d+?\.\d+?$", line[column]) is not None:
+            line[column] = float(line[column])
+
+          if column not in data_dict:
+            data_dict[column] = [line[column]]
+          else:
+            data_dict[column].append(line[column])
+          temp_row[column] = line[column]
+        if type(temp_row['Impressions'] ) == str:
+          temp_row['Impressions'] = temp_row['Impressions'].replace(',', '')
+        if type(temp_row['Clicks'] ) == str:
+          temp_row['Clicks'] = temp_row['Clicks'].replace(',', '')
+
+        if type(temp_row['Quality score'] ) == str:
+          temp_row['Quality score'] = -1
+        # custom rows here
+        #temp_row['CTR_impact'] = self.calculateWeightedImpact(temp_row['Impressions'], temp_row['CTR'])
+        if self.response_variable == 'ctr':
+          if int(temp_row['Impressions']) > 20:
+            data_list.append(temp_row)
+        elif self.response_variable == 'cr':
+          if int(temp_row['Clicks']) > 100:
+            data_list.append(temp_row)
+
+          i += 1
+        #else:
+      new_list = []
+      # dow_category, dow_category_rev, dow_enc = self.createCategoricalEncodings(data_dict['Day of week'])
+      # month_category, month_category_rev, month_enc = self.createCategoricalEncodings(data_dict['Month'])
+      #device_category, device_category_rev, device_enc = self.createCategoricalEncodings(data_dict['Dev
+      print(len(data_list))
+      for i in range(0, len(data_list)):
+
+        if self.response_variable == 'ctr':
+          Y_temp = data_list[i]['CTR']
+        elif self.response_variable == 'cr':
+          Y_temp = data_list[i]['Conv. rate']
+        #print(enc.transform(data_list[i]['Day of week']))
+        X_temp = {  'description': data_list[i]['Description'],
+                    'keyword': data_list[i]['Search keyword'],
+                    #'term': data_list[i]['Search term'],
+                    'headline': data_list[i]['Headline'],
+                    'headline1': data_list[i]['Headline 1'],
+                    'headline2': data_list[i]['Headline 2'],
+                    'display_url': data_list[i]['Display URL'],
+
+                    'quality_score': [data_list[i]['Quality score']],
+                    'position': [data_list[i]['Avg. position']],
+                    'cost': [data_list[i]['Avg. Cost']],
+
+                    # 'day_of_week': dow_enc.transform([dow_category[data_list[i]['Day of week']]]).toarray()[0],
+                    # 'month': month_enc.transform([month_category[data_list[i]['Month']]]).toarray()[0],
+                    #'device': device_enc.transform([device_category[data_list[i]['Device']]]).toarray()[0],
+        } 
+        new_list.append((Y_temp, X_temp))
+
+      return new_list
+
+# dow_category, dow_category_rev = self.createCategoricalEncodings(data_dict['Day of week'])
+
+#           enc = preprocessing.OneHotEncoder()
+#           enc.fit(list(dow_category.values()))
+
+#           for i in range(0, len(data_list)):
+#             Y_temp = data_list[i]['CTR']
+#             #print(enc.transform(data_list[i]['Day of week']))
+#             X_temp = {  'description': data_list[i]['Description'],
+#                         'day_of_week': enc.transform([dow_category[data_list[i]['Day of week']]]).toarray()
+#             } 
+#             new_list.append((Y_temp, X_temp))
+#           return new_list
+
+  #                   new_list = []
+  #         dow_category, dow_category_rev = self.createCategoricalEncodings(data_dict['Day of week'])
+
+  #         enc = preprocessing.OneHotEncoder()
+  #         enc.fit(list(dow_category.values()))
+  #         # print(data_dict)
+
+  #         for i in range(0, len(data_list)):
+  #           Y_temp = data_list[i]['CTR']
+  #           #print(enc.transform(data_list[i]['Day of week']))
+  #           X_temp = {  'description': data_list[i]['Description'],
+  #                       'day_of_week': enc.transform([dow_category[data_list[i]['Day of week']]])
+  #           }
+            
+  #           new_list.append((Y_temp, X_temp))
+
+  #         return new_list
+
+  def createCategoricalEncodings(self, all_observations):
+
+
+    list_of_categories = sorted(set(all_observations))
+    category_number_dict = {}
+    number_category_dict = {}
+    for number, category in enumerate(list_of_categories):
+      category_number_dict[category] = [number]
+      number_category_dict[number] = [category]
+
+    encoder = preprocessing.OneHotEncoder()
+    encoder.fit(list(category_number_dict.values()))
+
+    return category_number_dict, number_category_dict, encoder
 
   def ageGenderLoad(self, folder):
     documents = {}
