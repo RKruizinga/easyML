@@ -19,9 +19,30 @@ from classifier.features import ClassifierFeatures
 from text.features import TextFeatures
 from text.tokenizer import TextTokenizer
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.svm import LinearSVC
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import OneHotEncoder
+
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, FeatureHasher
+from sklearn.feature_extraction import DictVectorizer
+
+from sklearn.feature_selection import SelectKBest, RFE
+from sklearn.feature_selection import chi2
+from sklearn.feature_selection import f_regression
+from sklearn.preprocessing import StandardScaler
+
+from sklearn.feature_selection import VarianceThreshold
+from sklearn.svm import LinearSVC, SVR
+from sklearn.linear_model import BayesianRidge
+#from sklearn.linear_model import BayesianRidge
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
+from sklearn.linear_model import LassoLars
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression
 from sklearn.linear_model import SGDClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+
 from nltk.corpus import stopwords as sw
 
 #Step 3: Get all constants
@@ -31,7 +52,7 @@ con = Constants()
 options = Options('System parameters', con)
 
 #Step 5: Read all custom arguments/options
-options.add(name='predict_languages', _type=str, _default='esdi', _help='specify which language you want to predict')
+#options.add(name='predict_languages', _type=str, _default='esdi', _help='specify which language you want to predict')
 
 #Step 6: Parse arguments
 options.parse()
@@ -40,7 +61,6 @@ options.parse()
 random.seed(options.args.random_seed)
 
 #Custom function to read language from input
-options.args.predict_languages = languages(options.args.predict_languages)
 
 #Print system
 printer = Printer('System')
@@ -53,24 +73,18 @@ data = Data(options.args.avoid_skewness, options.args.data_folder, options.args.
 #Custom, should be self-made!
 
 #Step 8.1: Add the files or folders the data is preserved in (only if available)
-if options.args.predict_languages:
-  data.file_train = options.args.data_folder+'training/'
-  # data.file_development = 'eng-trial.pickle'
-  # data.file_test = 'eng-test.pickle'
+
+data.file_train = 'conversion_path.pickle'
+# data.file_development = 'eng-trial.pickle'
+# data.file_test = 'eng-test.pickle'
 
 #Custom function
-data.languages = options.args.predict_languages
 
 #Load data into a file
-data.train = data.load(data.file_train, format='specific_age_gender')
-if data.file_development != '':
-  data.development = data.load(data.file_development, format='specific_age_gender')
-if data.file_test != '':
-  data.test = data.load(data.file_test, format='specific_age_gender')
+data.train = data.load(data.file_train, format='pickle')
 
 #Step 8.2: Formulate the preprocessing steps which have to be done
-textPreprocessing = ['replaceTwitterURL', 'replaceDate', 'replaceYear']
-
+textPreprocessing = []
 #Step 8.3: Transform the data to our desired format
 data.transform(_type='YXrow', preprocessing=textPreprocessing) #> now we got X, Y and X_train, Y_train, X_development, Y_development and X_test
 
@@ -79,13 +93,18 @@ data.transform(_type='YXrow', preprocessing=textPreprocessing) #> now we got X, 
 
 #Step 9: Specify the features to use, this part is merely for sklearn.
 features = ClassifierFeatures()
-#features.add('wordCount', TextFeatures.wordCount())
-features.add('char', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeTweet, lowercase=False, analyzer='char', ngram_range=(3,5), min_df=1)),#, max_features=100000)),
-features.add('word', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeTweet, lowercase=False, analyzer='word', ngram_range=(1,2), min_df=1)),#, max_features=100000)),
+features.add('description_words', TfidfVectorizer(tokenizer=TextTokenizer.tokenized, lowercase=False, analyzer='word', ngram_range=(1,3), min_df=1), 'fullPages'),#, max_features=100000)),
 
 #Step 10: Specify the classifier you want to use (additionaly!)
-#new_classifier = LinearSVC()
-new_classifier = None
+new_classifier = SGDClassifier()
+
+#these are for the conversion probability task
+#new_classifier = LogisticRegression()
+#new_classifier = RandomForestClassifier()
+#new_classifier = GradientBoostingClassifier()
+
+#new_classifier = LinearRegression()
+#new_classifier = Ridge()
 
 if options.args.print_details >= 2:
   printer.labelDistribution(data.Y_train, 'Training Set')
@@ -96,4 +115,4 @@ if len(data.labels) > 1: #otherwise, there is nothing to train
 
   printer.duration()
 else:
-  print('The combination of the language <{}> and the variable <{}> only have one label. Thus, there is nothing to train. Try another combination!'.format(predict_languages, args.predict_label))
+  print('The combination of the language <> and the variable <{}> only have one label. Thus, there is nothing to train. Try another combination!'.format(args.predict_label))

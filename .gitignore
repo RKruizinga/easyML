@@ -1,1 +1,5 @@
 __pycache__/
+data/adsearchreport/amac_adsearchreport.tsv
+data/adsearchreport/
+data/client_scores/
+data/adsearchreport.zip

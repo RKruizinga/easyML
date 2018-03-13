@@ -5,6 +5,7 @@ from sklearn.pipeline import Pipeline, FeatureUnion
 
 from _function.basic import classificationMetrics
 from _function.basic import regressionMetrics
+from _function.basic import printProbabilities
 
 from _class.printer import Printer
 
@@ -57,19 +58,25 @@ class SVM:
   def evaluate(self):
     if self.X_development:
       self.Y_development_predicted = self.classifier.predict(self.X_development)
+      #self.Y_development_predicted_proba = self.classifier.predict_proba(self.X_development)
     if self.X_test:
       self.Y_test_predicted = self.classifier.predict(self.X_test)
 
+      #self.Y_test_predicted_proba = self.classifier.predict_proba(self.X_test)
+
     if self.predict_method == 'classification':
       self.accuracy, self.precision, self.recall, self.f1score = classificationMetrics(self.Y_development, self.Y_development_predicted, self.labels)
+      
     elif self.predict_method == 'regression':
-      self.mean_abs_err, self.mean_squ_err, self.r2score = regressionMetrics(self.Y_development, self.Y_development_predicted, self.labels)
+      self.mean_abs_err, self.mean_squ_err, self.r2score, self.kl_divergence = regressionMetrics(self.Y_development, self.Y_development_predicted, self.labels)
 
   def printBasicEvaluation(self):
     if self.predict_method == 'classification':
       self.printer.evaluation(self.accuracy, self.precision, self.recall, self.f1score, "Classification Evaluation")
     elif self.predict_method == 'regression':
-      self.printer.regressionEvaluation(self.mean_abs_err, self.mean_squ_err, self.r2score, "Regression Evaluation")
+      self.printer.regressionEvaluation(self.mean_abs_err, self.mean_squ_err, self.r2score, self.kl_divergence, "Regression Evaluation")
+
+    #printProbabilities(self.Y_development, self.Y_test_predicted_proba)
 
   def printClassEvaluation(self):
     self.printer.classEvaluation(self.Y_development, self.Y_development_predicted, self.labels)

@@ -9,7 +9,16 @@ from sklearn.metrics import f1_score
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
+from sklearn.metrics import mutual_info_score
 from sklearn.metrics import confusion_matrix
+
+import plotly
+import plotly.plotly as py
+import plotly.graph_objs as go
+
+import pprint
+
+pp = pprint.PrettyPrinter(indent=2)
 
 #Function to run our system, just for a clean main.py, as we do not want to change this.
 def run(k, method, data, features, printer, predict_method, new_classifier=None, print_details=1, show_fitting=False):
@@ -76,12 +85,16 @@ def classificationMetrics(Y_test, Y_predicted, labels):
 ### Function to print evaluation text of a script
 ### input(Y_test_list, Y_predicted_list, labels_list)
 def regressionMetrics(Y_test, Y_predicted, labels):
-  print(Y_test[:30], Y_predicted[:30])
+
+  # for key, Y_test_i in enumerate(Y_test):
+  #   print(Y_test_i, Y_predicted[key])
+    
   r2score = sklearn.metrics.r2_score(Y_test, Y_predicted)
   mean_abs_err = sklearn.metrics.mean_absolute_error(Y_test, Y_predicted)
   mean_squ_err = sklearn.metrics.mean_squared_error(Y_test, Y_predicted)
+  mutual_info = sklearn.metrics.mutual_info_score(Y_test, Y_predicted)
 
-  return mean_abs_err, mean_squ_err, r2score
+  return mean_abs_err, mean_squ_err, r2score, mutual_info
 
 def classifier(method, data, predict_method, show_fitting):
   if method == 'bayes':
@@ -136,3 +149,60 @@ def unskewedTrain(X_train, Y_train, Y_train_raw = None):
     new_Y_train.append(Y_train[i])
 
   return new_X_train, new_Y_train
+
+
+def printProbabilities(Y_test, Y_predicted_proba):
+  no = []
+  yes = []
+  no_x = []
+  yes_x = []
+  for key, Y_test_i in enumerate(Y_test): 
+    if Y_test_i is 1:
+      yes.append(round(Y_predicted_proba[key][1], 3))
+      yes_x.append(random.randint(0,100))
+
+    else:
+      no.append(round(Y_predicted_proba[key][1], 3))
+      no_x.append(random.randint(0,100))
+      
+  N = 500
+  plotly.tools.set_credentials_file(username='RKruizinga', api_key='twDl3OBUY9wXbwTYUdkJ')
+
+  trace0 = go.Scatter(
+    x = yes_x,
+    y = yes,
+    name = 'Converted',
+    mode = 'markers',
+    marker = dict(
+      size = 10,
+      color = 'rgba(0, 255, 0, .9)',
+      line = dict(
+        width = 2,
+        color = 'rgb(0, 0, 0)'
+      )
+    )
+  )
+
+  trace1 = go.Scatter(
+    x = no_x,
+    y = no,
+    name = 'Not Converted',
+    mode = 'markers',
+    marker = dict(
+      size = 10,
+      color = 'rgba(255, 0, 0, .2)',
+      line = dict(
+        width = 2,
+      )
+    )
+  )
+
+  data = [trace0, trace1]
+
+  layout = dict(title = 'Avg Conversion Matrix',
+        yaxis = dict(zeroline = False),
+        xaxis = dict(zeroline = False)
+        )
+
+  fig = dict(data=data, layout=layout)
+  py.plot(fig, file_id='https://plot.ly', filename='avg-conversion-rate-regression')

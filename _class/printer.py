@@ -81,11 +81,13 @@ class Printer:
     print("Recall:\t\t {}".format(round(recall, 3)))
     print("F1-Score:\t {}".format(round(f1score, 3)))
 
-  def regressionEvaluation(self, mean_abs_err, mean_squ_err, r2score, text):
+  def regressionEvaluation(self, mean_abs_err, mean_squ_err, r2score, kl_divergence, text):
     print("\n~~~" + text + "~~~ \n")
     print("Mean Absolute Error\t {}".format(round(mean_abs_err, 3)))
     print("Mean Squared Error\t {}".format(round(mean_squ_err, 3)))
+    print("Root Mean Squared Error\t {}".format(round(mean_squ_err**(0.5), 3)))
     print("R2-score:\t\t {}".format(round(r2score, 3)))
+    print("Kullback–Leibler divergence: \t {}".format(round(kl_divergence, 3)))
 
 ### Function to print evaluation text of a script
 ### input(Y_test_list, Y_predicted_list, labels_list)
@@ -108,12 +110,15 @@ class Printer:
   def labelDistribution(self, Y, text, orderBy='label'):
     label_distribution = keyCounter(Y)
 
-    is_digit = False
     label_distribution_ordered = []
     for label in label_distribution:
-      if label.isdigit():
-        label_distribution_ordered.append((int(label), label_distribution[label]))
-      else:
+
+      try:
+        if label.isdigit():
+          label_distribution_ordered.append((int(label), label_distribution[label]))
+        else:
+          label_distribution_ordered.append((label, label_distribution[label]))
+      except:
         label_distribution_ordered.append((label, label_distribution[label]))
 
     if orderBy == 'label':

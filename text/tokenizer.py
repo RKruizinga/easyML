@@ -8,6 +8,9 @@ class TextTokenizer: #collection class of different tokenizers
   
   def tokenizeText(arg):
     return word_tokenize(arg)
+    
+  def tokenized(arg):
+    return arg
 
 ### Tokenize tweets for neural networks
   def tokenizeTweets(tweets):

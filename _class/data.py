@@ -174,7 +174,9 @@ class Data:
         temp_row = {}
         for column in line:  
           line[column] =  re.sub(r'^€', '', line[column])
+          line[column] =  re.sub(r'^â‚¬', '', line[column])
           line[column] =  re.sub(r'%$', '', line[column])
+          
           if column == 'Quarter' or column == 'Month':
             line[column] =  re.sub(r' \d{4}$', '', line[column])
 
@@ -198,7 +200,7 @@ class Data:
         # custom rows here
         #temp_row['CTR_impact'] = self.calculateWeightedImpact(temp_row['Impressions'], temp_row['CTR'])
         if self.response_variable == 'ctr':
-          if int(temp_row['Impressions']) > 20:
+          if int(temp_row['Impressions']) > 10:
             data_list.append(temp_row)
         elif self.response_variable == 'cr':
           if int(temp_row['Clicks']) > 100:
