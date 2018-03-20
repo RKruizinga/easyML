@@ -8,6 +8,9 @@ from _function.basic import regressionMetrics
 from _function.basic import printProbabilities
 
 from _class.printer import Printer
+import pprint
+
+pp = pprint.PrettyPrinter(indent=2)
 
 class SVM:
   X_train = []
@@ -58,11 +61,8 @@ class SVM:
   def evaluate(self):
     if self.X_development:
       self.Y_development_predicted = self.classifier.predict(self.X_development)
-      #self.Y_development_predicted_proba = self.classifier.predict_proba(self.X_development)
     if self.X_test:
       self.Y_test_predicted = self.classifier.predict(self.X_test)
-
-      #self.Y_test_predicted_proba = self.classifier.predict_proba(self.X_test)
 
     if self.predict_method == 'classification':
       self.accuracy, self.precision, self.recall, self.f1score = classificationMetrics(self.Y_development, self.Y_development_predicted, self.labels)
@@ -75,8 +75,6 @@ class SVM:
       self.printer.evaluation(self.accuracy, self.precision, self.recall, self.f1score, "Classification Evaluation")
     elif self.predict_method == 'regression':
       self.printer.regressionEvaluation(self.mean_abs_err, self.mean_squ_err, self.r2score, self.kl_divergence, "Regression Evaluation")
-
-    #printProbabilities(self.Y_development, self.Y_test_predicted_proba)
 
   def printClassEvaluation(self):
     self.printer.classEvaluation(self.Y_development, self.Y_development_predicted, self.labels)

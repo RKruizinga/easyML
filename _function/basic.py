@@ -28,6 +28,7 @@ def run(k, method, data, features, printer, predict_method, new_classifier=None,
 
     if print_details >= 1:
       kfold.printBasicEvaluation()
+    return kfold
 
   else:
     c = classifier(method, data, predict_method, show_fitting)
@@ -41,7 +42,7 @@ def run(k, method, data, features, printer, predict_method, new_classifier=None,
     #writeResults(options.args.predict_languages, classifier.Y_development, classifier.Y_development_predicted, 'development')
     if print_details >= 3:
       printer.confusionMatrix(c.Y_development, c.Y_development_predicted, data.labels)
-
+    return c
 ### Function to return average of a list
 ### input(list)
 def avg(l):

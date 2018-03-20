@@ -42,8 +42,15 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.linear_model import SGDClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.externals import joblib
 
 from nltk.corpus import stopwords as sw
+from _function.basic import printProbabilities
+
+
+import pprint
+
+pp = pprint.PrettyPrinter(indent=2)
 
 #Step 3: Get all constants
 con = Constants()
@@ -74,14 +81,26 @@ data = Data(options.args.avoid_skewness, options.args.data_folder, options.args.
 
 #Step 8.1: Add the files or folders the data is preserved in (only if available)
 
-data.file_train = 'conversion_path.pickle'
-# data.file_development = 'eng-trial.pickle'
-# data.file_test = 'eng-test.pickle'
+data.file_train = 'conversion_chance.pickle'
+#data.file_train = 'conversion_product.pickle'
+#data.file_train = 'conversion_path.pickle'
 
 #Custom function
 
 #Load data into a file
 data.train = data.load(data.file_train, format='pickle')
+counter = {}
+
+# for row in data.train:
+#   if row[0] not in counter:
+#     counter[row[0]] = 0
+#   counter[row[0]] += 1
+
+# new_train= []
+# for row in data.train:
+#   if counter[row[0]] > 5:
+#     new_train.append(row)
+# data.train = new_train
 
 #Step 8.2: Formulate the preprocessing steps which have to be done
 textPreprocessing = []
@@ -99,19 +118,27 @@ features.add('description_words', TfidfVectorizer(tokenizer=TextTokenizer.tokeni
 new_classifier = SGDClassifier()
 
 #these are for the conversion probability task
-#new_classifier = LogisticRegression()
+new_classifier = LogisticRegression()
 #new_classifier = RandomForestClassifier()
 #new_classifier = GradientBoostingClassifier()
 
 #new_classifier = LinearRegression()
 #new_classifier = Ridge()
 
-if options.args.print_details >= 2:
+if options.args.print_details >= 1:
   printer.labelDistribution(data.Y_train, 'Training Set')
 
 #Step 11: Run our system.
 if len(data.labels) > 1: #otherwise, there is nothing to train
-  run(options.args.k, options.args.method, data, features._list, printer, options.args.predict_method, new_classifier, options.args.print_details, options.args.show_fitting)
+  classifier = run(options.args.k, options.args.method, data, features._list, printer, options.args.predict_method, new_classifier, options.args.print_details, options.args.show_fitting)
+
+  classifier.Y_development_predicted_proba = classifier.classifier.predict_proba(classifier.X_test)
+  joblib.dump(classifier.classifier, options.args.data_folder+'conversion_chance_model.pickle') 
+
+  for i, x in enumerate(classifier.X_test['fullPages']):
+    if classifier.Y_development[i] == 1:
+      pp.pprint([classifier.X_development['fullPages'][i], classifier.Y_development[i], classifier.Y_development_predicted_proba[i]])
+  printProbabilities(classifier.Y_development, classifier.Y_development_predicted_proba)
 
   printer.duration()
 else:
