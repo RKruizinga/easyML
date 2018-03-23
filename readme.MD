@@ -7,6 +7,6 @@ python main.py --data_folder=data/adsearchreport/ --predict_label=ctr --method=s
 --- for conversions of a particular client
 python conversion_chance.py --data_folder=data/client_scores/pme/ --predict_label=conversion_chance --method=svm --k=1 --print_details=1 --predict_method=classification --avoid_skewness=True
 
-python conversion_path.py --data_folder=data/client_scores/pme/ --predict_label=conversion_path --method=svm --k=1 --print_details=1 --predict_method=classification --avoid_skewness=True
+python conversion_path.py --data_folder=data/client_scores/pme/ --predict_label=conversion_path --method=svm --k=1 --print_details=1 --predict_method=classification
 
-python conversion_product.py --data_folder=data/client_scores/pme/ --predict_label=conversion_product --method=svm --k=1 --print_details=1 --predict_method=classification --avoid_skewness=True
+python conversion_product.py --data_folder=data/client_scores/pme/ --predict_label=conversion_product --method=svm --k=1 --print_details=1 --predict_method=classification
