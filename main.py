@@ -13,11 +13,11 @@ from _function.basic import classifier, run
 from _function.custom import writeResults, languages
 
 #Step 1.3: Import classifier
-from classifier.features import ClassifierFeatures
+from static.classifier.features import ClassifierFeatures
 
 #Step 2: Import custom functions
-from text.features import TextFeatures
-from text.tokenizer import TextTokenizer
+from static.text.features import TextFeatures
+from static.text.tokenizer import TextTokenizer
 
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import OneHotEncoder
@@ -43,6 +43,8 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.externals import joblib
+from sklearn.svm import SVC
+from sklearn.gaussian_process import GaussianProcessClassifier
 
 from nltk.corpus import stopwords as sw
 from _function.basic import printProbabilities
@@ -118,9 +120,10 @@ features.add('description_words', TfidfVectorizer(tokenizer=TextTokenizer.tokeni
 new_classifier = SGDClassifier()
 
 #these are for the conversion probability task
-new_classifier = LogisticRegression()
+#new_classifier = LogisticRegression()
 #new_classifier = RandomForestClassifier()
-#new_classifier = GradientBoostingClassifier()
+new_classifier = GradientBoostingClassifier()
+#new_classifier =  SVC(kernel='linear', probability=True)
 
 #new_classifier = LinearRegression()
 #new_classifier = Ridge()
@@ -135,10 +138,10 @@ if len(data.labels) > 1: #otherwise, there is nothing to train
   classifier.Y_development_predicted_proba = classifier.classifier.predict_proba(classifier.X_test)
   joblib.dump(classifier.classifier, options.args.data_folder+'conversion_chance_model.pickle') 
 
-  for i, x in enumerate(classifier.X_test['fullPages']):
-    if classifier.Y_development[i] == 1:
-      pp.pprint([classifier.X_development['fullPages'][i], classifier.Y_development[i], classifier.Y_development_predicted_proba[i]])
-  printProbabilities(classifier.Y_development, classifier.Y_development_predicted_proba)
+  # for i, x in enumerate(classifier.X_test['fullPages']):
+  #   if classifier.Y_development[i] == 1:
+  #     pp.pprint([classifier.X_development['fullPages'][i], classifier.Y_development[i], classifier.Y_development_predicted_proba[i]])
+  # printProbabilities(classifier.Y_development, classifier.Y_development_predicted_proba)
 
   printer.duration()
 else:
