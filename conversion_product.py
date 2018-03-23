@@ -84,8 +84,8 @@ data = Data(options.args.avoid_skewness, options.args.data_folder, options.args.
 #Step 8.1: Add the files or folders the data is preserved in (only if available)
 
 #data.file_train = 'conversion_chance.pickle'
-#data.file_train = 'conversion_product.pickle'
-data.file_train = 'conversion_path.pickle'
+data.file_train = 'conversion_product.pickle'
+#data.file_train = 'conversion_path.pickle'
 
 #Custom function
 
@@ -123,9 +123,9 @@ features.add('page_level_4', TfidfVectorizer(tokenizer=TextTokenizer.tokenized, 
 new_classifier = SGDClassifier()
 
 #these are for the conversion probability task
-new_classifier = LogisticRegression()
+#new_classifier = LogisticRegression()
 #new_classifier = RandomForestClassifier()
-#new_classifier = GradientBoostingClassifier()
+new_classifier = GradientBoostingClassifier()
 #new_classifier =  SVC(kernel='linear', probability=True)
 
 #new_classifier = LinearRegression()

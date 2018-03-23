@@ -83,9 +83,9 @@ data = Data(options.args.avoid_skewness, options.args.data_folder, options.args.
 
 #Step 8.1: Add the files or folders the data is preserved in (only if available)
 
-#data.file_train = 'conversion_chance.pickle'
+data.file_train = 'conversion_chance.pickle'
 #data.file_train = 'conversion_product.pickle'
-data.file_train = 'conversion_path.pickle'
+#data.file_train = 'conversion_path.pickle'
 
 #Custom function
 
@@ -93,16 +93,16 @@ data.file_train = 'conversion_path.pickle'
 data.train = data.load(data.file_train, format='pickle')
 counter = {}
 
-for row in data.train:
-  if row[0] not in counter:
-    counter[row[0]] = 0
-  counter[row[0]] += 1
+# for row in data.train:
+#   if row[0] not in counter:
+#     counter[row[0]] = 0
+#   counter[row[0]] += 1
 
-new_train= []
-for row in data.train:
-  if counter[row[0]] > 5:
-    new_train.append(row)
-data.train = new_train
+# new_train= []
+# for row in data.train:
+#   if counter[row[0]] > 5:
+#     new_train.append(row)
+# data.train = new_train
 
 #Step 8.2: Formulate the preprocessing steps which have to be done
 textPreprocessing = []
@@ -123,9 +123,9 @@ features.add('page_level_4', TfidfVectorizer(tokenizer=TextTokenizer.tokenized, 
 new_classifier = SGDClassifier()
 
 #these are for the conversion probability task
-new_classifier = LogisticRegression()
+#new_classifier = LogisticRegression()
 #new_classifier = RandomForestClassifier()
-#new_classifier = GradientBoostingClassifier()
+new_classifier = GradientBoostingClassifier()
 #new_classifier =  SVC(kernel='linear', probability=True)
 
 #new_classifier = LinearRegression()

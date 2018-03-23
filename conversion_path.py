@@ -123,9 +123,9 @@ features.add('page_level_4', TfidfVectorizer(tokenizer=TextTokenizer.tokenized, 
 new_classifier = SGDClassifier()
 
 #these are for the conversion probability task
-new_classifier = LogisticRegression()
+#new_classifier = LogisticRegression()
 #new_classifier = RandomForestClassifier()
-#new_classifier = GradientBoostingClassifier()
+new_classifier = GradientBoostingClassifier()
 #new_classifier =  SVC(kernel='linear', probability=True)
 
 #new_classifier = LinearRegression()
