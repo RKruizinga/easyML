@@ -10,7 +10,13 @@ class TextTokenizer: #collection class of different tokenizers
     return word_tokenize(arg)
     
   def tokenized(arg):
-    return arg
+    return arg  
+
+  def last_page(arg):
+    if len(arg) > 0:
+      return arg[-1]
+    else:
+      return arg
 
 ### Tokenize tweets for neural networks
   def tokenizeTweets(tweets):
