@@ -164,49 +164,17 @@ class Data:
   def complexLoad(self, file_name):
 
     with open(self.data_folder+file_name, 'r' ) as csvfile:
-      reader = csv.DictReader(csvfile,  delimiter='\t')
+      reader = csv.DictReader(csvfile,  delimiter=';')
       data_dict = {}
       data_list = []
 
-      i = 0
       for line in reader:
         #if i < 500000:
         temp_row = {}
         for column in line:  
-          line[column] =  re.sub(r'^€', '', line[column])
-          line[column] =  re.sub(r'^â‚¬', '', line[column])
-          line[column] =  re.sub(r'%$', '', line[column])
-          
-          if column == 'Quarter' or column == 'Month':
-            line[column] =  re.sub(r' \d{4}$', '', line[column])
-
-          if line[column].isdigit():
-            line[column] = int(line[column])
-          elif re.match("^\d+?\.\d+?$", line[column]) is not None:
-            line[column] = float(line[column])
-
-          if column not in data_dict:
-            data_dict[column] = [line[column]]
-          else:
-            data_dict[column].append(line[column])
           temp_row[column] = line[column]
-        if type(temp_row['Impressions'] ) == str:
-          temp_row['Impressions'] = temp_row['Impressions'].replace(',', '')
-        if type(temp_row['Clicks'] ) == str:
-          temp_row['Clicks'] = temp_row['Clicks'].replace(',', '')
+        data_list.append(temp_row)
 
-        if type(temp_row['Quality score'] ) == str:
-          temp_row['Quality score'] = -1
-        # custom rows here
-        #temp_row['CTR_impact'] = self.calculateWeightedImpact(temp_row['Impressions'], temp_row['CTR'])
-        if self.response_variable == 'ctr':
-          if int(temp_row['Impressions']) > 10:
-            data_list.append(temp_row)
-        elif self.response_variable == 'cr':
-          if int(temp_row['Clicks']) > 100:
-            data_list.append(temp_row)
-
-          i += 1
         #else:
       new_list = []
       # dow_category, dow_category_rev, dow_enc = self.createCategoricalEncodings(data_dict['Day of week'])
@@ -216,21 +184,19 @@ class Data:
       for i in range(0, len(data_list)):
 
         if self.response_variable == 'ctr':
-          Y_temp = data_list[i]['CTR']
+          Y_temp = int(data_list[i]['CTR'])
         elif self.response_variable == 'cr':
-          Y_temp = data_list[i]['Conv. rate']
+          Y_temp = int(data_list[i]['conversion_rate'])
         #print(enc.transform(data_list[i]['Day of week']))
-        X_temp = {  'description': data_list[i]['Description'],
-                    'keyword': data_list[i]['Search keyword'],
-                    #'term': data_list[i]['Search term'],
-                    'headline': data_list[i]['Headline'],
-                    'headline1': data_list[i]['Headline 1'],
-                    'headline2': data_list[i]['Headline 2'],
-                    'display_url': data_list[i]['Display URL'],
-
-                    'quality_score': [data_list[i]['Quality score']],
-                    'position': [data_list[i]['Avg. position']],
-                    'cost': [data_list[i]['Avg. Cost']],
+        X_temp = { 
+                    'headline': data_list[i]['headline'],
+                    'description': data_list[i]['description'],
+                    'path': data_list[i]['path'],
+                    'search_keyword': data_list[i]['search_keyword'],
+                    'match_type': data_list[i]['match_type'],
+                    'device': data_list[i]['device'],
+                    # 'position': [data_list[i]['Avg. position']],
+                    # 'cost': [data_list[i]['Avg. Cost']],
 
                     # 'day_of_week': dow_enc.transform([dow_category[data_list[i]['Day of week']]]).toarray()[0],
                     # 'month': month_enc.transform([month_category[data_list[i]['Month']]]).toarray()[0],

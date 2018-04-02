@@ -68,6 +68,8 @@ class SVM:
       self.accuracy, self.precision, self.recall, self.f1score = classificationMetrics(self.Y_development, self.Y_development_predicted, self.labels)
       
     elif self.predict_method == 'regression':
+      # self.Y_development_predicted = self.classifier.score(self.X_development, self.Y_development)
+      # print(self.Y_development_predicted)
       self.mean_abs_err, self.mean_squ_err, self.r2score, self.kl_divergence = regressionMetrics(self.Y_development, self.Y_development_predicted, self.labels)
 
   def printBasicEvaluation(self):

@@ -72,10 +72,7 @@ data = Data(options.args.avoid_skewness, options.args.data_folder, options.args.
 #Custom, should be self-made!
 
 #Step 8.1: Add the files or folders the data is preserved in (only if available)
-if options.args.predict_languages:
-  data.file_train = 'unive_adsearchreport.tsv'
-  # data.file_development = 'eng-trial.pickle'
-  # data.file_test = 'eng-test.pickle'
+data.file_train = 'impression_data.csv'
 
 #Custom function
 data.languages = options.args.predict_languages
@@ -94,24 +91,24 @@ data.transform(_type='YXrow', preprocessing=textPreprocessing) #> now we got X, 
 
 #Step 9: Specify the features to use, this part is merely for sklearn.
 features = ClassifierFeatures()
-features.add('description_words', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1,10), min_df=1), 'description'),#, max_features=100000)),
-features.add('headline_words', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1,5), min_df=1), 'headline'),#, max_features=100000)),
-features.add('headline1_words', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1,5), min_df=1), 'headline1'),#, max_features=100000)),
-features.add('headline2_words', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1,5), min_df=1), 'headline2'),#, max_features=100000)),
-features.add('keyword_words', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1, 2), min_df=1), 'keyword'),#, max_features=100000)),
-#features.add('term_words', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1, 2), min_df=1), 'term'),#, max_features=100000)),
-features.add('display_url', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1, 1), min_df=1), 'display_url'),#, max_features=100000)),
-features.add('quality_score', StandardScaler(), 'quality_score'),
-features.add('position', StandardScaler(), 'position'),
-features.add('cost', StandardScaler(), 'cost'),
+features.add('headline', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1,1), min_df=1), 'headline'),#, max_features=100000)),
+# features.add('headline_words', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1,1), min_df=1), 'headline'),#, max_features=100000)),
+# features.add('headline1_words', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1,1), min_df=1), 'headline1'),#, max_features=100000)),
+# features.add('headline2_words', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1,1), min_df=1), 'headline2'),#, max_features=100000)),
+# features.add('keyword_words', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1, 1), min_df=1), 'keyword'),#, max_features=100000)),
+# #features.add('term_words', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1, 2), min_df=1), 'term'),#, max_features=100000)),
+# features.add('display_url', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1, 1), min_df=1), 'display_url'),#, max_features=100000)),
+# features.add('quality_score', StandardScaler(), 'quality_score'),
+# features.add('position', StandardScaler(), 'position'),
+# features.add('cost', StandardScaler(), 'cost'),
 #features.add('month', OneHotEncoder(), 'month'),
 
 #features.add('device', OneHotEncoder(), 'device'),
 
-
 #Step 10: Specify the classifier you want to use (additionaly!)
-new_classifier = SVR(kernel='linear')
-#new_classifier = LinearRegression()
+new_classifier = LogisticRegression()
+#new_classifier = SVR(kernel='linear')
+#new_classifier = LinearRegression(normalize=True)
 #new_classifier = Ridge()
 
 if options.args.print_details >= 2:
@@ -119,8 +116,21 @@ if options.args.print_details >= 2:
 
 #Step 11: Run our system.
 if len(data.labels) > 1: #otherwise, there is nothing to train
-  run(options.args.k, options.args.method, data, features._list, printer, options.args.predict_method, new_classifier, options.args.print_details, options.args.show_fitting)
+  clf = run(options.args.k, options.args.method, data, features._list, printer, options.args.predict_method, new_classifier, options.args.print_details, options.args.show_fitting)
 
+  coefs = clf.classifier.named_steps['classifier'].coef_
+  feature_names = clf.classifier.named_steps['feats'].get_params()['transformer_list'][0][1].named_steps['feature'].get_feature_names()
+
+  coef_dict = {}
+  
+  for coef, feat in zip(coefs,feature_names):
+    coef_dict[feat] = coef
+  print(coef_dict)
+
+  # print(coef_dict)
+  
+  # for word in coef_dict:
+  #   print(len(coef_dict[word]))
   printer.duration()
 else:
   print('The combination of the language <{}> and the variable <{}> only have one label. Thus, there is nothing to train. Try another combination!'.format(predict_languages, args.predict_label))

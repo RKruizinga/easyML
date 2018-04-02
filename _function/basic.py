@@ -89,7 +89,6 @@ def regressionMetrics(Y_test, Y_predicted, labels):
 
   # for key, Y_test_i in enumerate(Y_test):
   #   print(Y_test_i, Y_predicted[key])
-    
   r2score = sklearn.metrics.r2_score(Y_test, Y_predicted)
   mean_abs_err = sklearn.metrics.mean_absolute_error(Y_test, Y_predicted)
   mean_squ_err = sklearn.metrics.mean_squared_error(Y_test, Y_predicted)
