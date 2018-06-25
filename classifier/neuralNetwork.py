@@ -4,7 +4,7 @@ import os
 
 import keras
 import keras.backend as K
-from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.text import Tokenizer, hashing_trick, text_to_word_sequence
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing import sequence
 from keras.utils import to_categorical
@@ -12,8 +12,12 @@ from keras.models import Model, Sequential
 from keras.layers import Dense, Input, Flatten, Dropout, Activation
 from keras.layers import Embedding
 from keras.layers import LSTM, Bidirectional
+from keras.layers import GlobalAveragePooling1D
+
+
     
 from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, FeatureHasher
 
 from _function.basic import classificationMetrics, unskewedTrain
 from _class.printer import Printer
@@ -51,12 +55,28 @@ class NeuralNetwork:
 
 
   def tokenize(self):
-    self.X_tokenized = TextTokenizer.tokenizeTweets(self.X) #all tweets!
-    self.tokenizer = Tokenizer(split="|",)
-    self.tokenizer.fit_on_texts(self.X_tokenized)
-    self.sequences = self.tokenizer.texts_to_sequences(self.X_tokenized)
-    self.X = pad_sequences(self.sequences)
+    xy_section = []
+    xy_area = []
+    xy_element = []
+
+    for x in self.X:
+      xy_section.append(x['xy_section'])
+      #xy_area.append(text_to_word_sequence('|'.join(x['xy_area']), split='|'))
+      xy_area.append(x['xy_area'])
+      xy_element.append(x['xy_element'])
+
+    #self.X_tokenized = TextTokenizer.tokenizeTweets(self.X) #all tweets!
+    #print(xy_area)
+    
+    self.X_tokenized = xy_area
+    vectorizer = TfidfVectorizer(tokenizer=TextTokenizer.tokenized, lowercase=False, analyzer='word', ngram_range=(1, 1), min_df=1)
+    self.X = vectorizer.fit_transform(self.X_tokenized)
+    self.input_length = len(vectorizer.get_feature_names())
+    #print(self.X)
+    #self.X = sequence.pad_sequences(self.X_tokenized)
+    #print(len(self.X))
     self.Y = to_categorical(self.Y)
+
 
   def classify(self, features, classifier=None):
     self.tokenize()
@@ -69,7 +89,6 @@ class NeuralNetwork:
 
     self.X_development = self.X[train_development_split:development_test_split]
     self.Y_development = self.Y[train_development_split:development_test_split]
-
     
     self.X_test = self.X[development_test_split:]
 
@@ -81,18 +100,17 @@ class NeuralNetwork:
       self.X_train = np.array(self.X_train)
       self.Y_train = np.array(self.Y_train)
 
-    self.word_embeddings_layer, self.word_embeddings_index = readWordEmbeddings(self.data.languages, self.data.response_variable)
-    if self.word_embeddings_layer == None:
-      self.createWordEmbeddings()
-
-    self.printDataInformation()
-
     ##CHANGE OPTIONS HERE
     self.model = Sequential()
-    self.model.add(self.word_embeddings_layer)
+    self.model.add(Dense(512, input_shape=(self.input_length,)))
+    self.model.add(Activation('relu'))
     self.model.add(Dropout(0.2))
-    self.model.add(LSTM(self.word_embeddings_dim))
-    self.model.add(Dense(self.Y.shape[1], activation='sigmoid'))
+    # self.model.add(Dense(128))
+    self.model.add(Activation('relu'))
+    self.model.add(Dropout(0.1))
+    self.model.add(Dense(6))
+    self.model.add(Activation('sigmoid'))
+
 
     self.model.compile(loss='categorical_crossentropy',
                   optimizer='adam',
@@ -100,7 +118,7 @@ class NeuralNetwork:
 	
     # Train the model 
     self.printer = Printer('Model Fitting', self.show_fitting)
-    self.model.fit(self.X_train, self.Y_train, epochs = 5, batch_size = 128, validation_split = 0.2)
+    self.model.fit(self.X_train, self.Y_train, epochs = 50, batch_size = 128, validation_split = 0.2)
     self.printer.duration()
 
   def evaluate(self):

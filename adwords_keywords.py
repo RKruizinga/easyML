@@ -9,7 +9,7 @@ from _class.constants import Constants
 from _class.printer import Printer
 
 #Step 1.2: Import all functions
-from _function.basic import classifier, run
+from _function.basic import classifier, run, regressionMetrics
 from _function.custom import writeResults, languages
 
 #Step 1.3: Import classifier
@@ -21,6 +21,7 @@ from text.tokenizer import TextTokenizer
 
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import CategoricalEncoder
 
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, FeatureHasher
 from sklearn.feature_extraction import DictVectorizer
@@ -78,8 +79,9 @@ data.file_train = 'impression_data.csv'
 data.languages = options.args.predict_languages
 
 #Load data into a file
-data.train = data.load(data.file_train, format='complex_file')
-
+data.train, test = data.load(data.file_train, format='complex_file')
+x_tester = [x[1] for x in test]
+y_tester = [y[0] for y in test]
 #Step 8.2: Formulate the preprocessing steps which have to be done
 textPreprocessing = []
 
@@ -91,25 +93,27 @@ data.transform(_type='YXrow', preprocessing=textPreprocessing) #> now we got X, 
 
 #Step 9: Specify the features to use, this part is merely for sklearn.
 features = ClassifierFeatures()
-features.add('headline', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1,1), min_df=1), 'headline'),#, max_features=100000)),
+#features.add('headline', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1,1), min_df=1), 'headline'),#, max_features=100000)),
 # features.add('headline_words', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1,1), min_df=1), 'headline'),#, max_features=100000)),
 # features.add('headline1_words', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1,1), min_df=1), 'headline1'),#, max_features=100000)),
 # features.add('headline2_words', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1,1), min_df=1), 'headline2'),#, max_features=100000)),
 # features.add('keyword_words', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1, 1), min_df=1), 'keyword'),#, max_features=100000)),
 # #features.add('term_words', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1, 2), min_df=1), 'term'),#, max_features=100000)),
-# features.add('display_url', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1, 1), min_df=1), 'display_url'),#, max_features=100000)),
+#features.add('display_url', TfidfVectorizer(tokenizer=TextTokenizer.tokenizeText, lowercase=False, analyzer='word', ngram_range=(1, 1), min_df=1), 'display_url'),#, max_features=100000)),
 # features.add('quality_score', StandardScaler(), 'quality_score'),
-# features.add('position', StandardScaler(), 'position'),
-# features.add('cost', StandardScaler(), 'cost'),
-#features.add('month', OneHotEncoder(), 'month'),
 
-#features.add('device', OneHotEncoder(), 'device'),
+features.add('avg_position', StandardScaler(), 'avg_position'),
+features.add('avg_cost', StandardScaler(), 'avg_cost'),
+features.add('device', CategoricalEncoder(), 'device'),
+features.add('ad_placement', CategoricalEncoder(), 'ad_placement'),
+features.add('ad_type', CategoricalEncoder(), 'ad_type'),
+features.add('match_type', CategoricalEncoder(), 'match_type'),
 
 #Step 10: Specify the classifier you want to use (additionaly!)
 new_classifier = LogisticRegression()
 #new_classifier = SVR(kernel='linear')
-#new_classifier = LinearRegression(normalize=True)
-#new_classifier = Ridge()
+#new_classifier = LinearRegression(fit_intercept=True, normalize=True)
+#new_classifier = Ridge(alpha=.5)
 
 if options.args.print_details >= 2:
   printer.labelDistribution(data.Y_train, 'Training Set')
@@ -118,14 +122,33 @@ if options.args.print_details >= 2:
 if len(data.labels) > 1: #otherwise, there is nothing to train
   clf = run(options.args.k, options.args.method, data, features._list, printer, options.args.predict_method, new_classifier, options.args.print_details, options.args.show_fitting)
 
-  coefs = clf.classifier.named_steps['classifier'].coef_
-  feature_names = clf.classifier.named_steps['feats'].get_params()['transformer_list'][0][1].named_steps['feature'].get_feature_names()
+  new_x_tester = {}
+  for row in x_tester:
+    for var in row:
+      if var not in new_x_tester:
+        new_x_tester[var] = []
+      new_x_tester[var].append(row[var])
 
-  coef_dict = {}
+  #print(new_x_tester)
+  t = clf.classifier.predict_proba(new_x_tester)
+  results_y = []
+  predicted_y = []
+  for t, i in enumerate(t):
+    print(y_tester[t], i[1]*100)
+    results_y.append(y_tester[t])
+    predicted_y.append(i[1]*100)
+  mean_abs_err, mean_squ_err, r2score, kl_divergence = regressionMetrics(results_y, predicted_y)
+  printer.regressionEvaluation(mean_abs_err, mean_squ_err, r2score, kl_divergence, "Regression Evaluation")
+
+  # coefs = clf.classifier.named_steps['classifier'].coef_
+  # feature_names = clf.classifier.named_steps['feats'].get_params()['transformer_list'][0][1].named_steps['feature'].get_feature_names()
+
+  # coef_dict = {}
   
-  for coef, feat in zip(coefs,feature_names):
-    coef_dict[feat] = coef
-  print(coef_dict)
+  # for coef, feat in zip(coefs,feature_names):
+  #   coef_dict[feat] = coef
+  #print(coef_dict)
+  
 
   # print(coef_dict)
   

@@ -65,6 +65,9 @@ class Classifier:
   
   def predict(self, X):
     Y_predicted = []
+    if type(X) == dict:
+      X = X[list(X.keys())[0]]
+    #print(X))
     for doc in X:
       Y_predicted.append(self.most_frequent_class) 
     return Y_predicted

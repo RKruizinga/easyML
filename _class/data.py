@@ -128,7 +128,6 @@ class Data:
     self.createXY()
     #print(self.Y)
     self.labels = list(set(self.Y)) 
-
     self.X_train = self.transformX(self.X_train)
     self.X_development = self.transformX(self.X_development)
     self.X_test = self.transformX(self.X_test)
@@ -177,34 +176,53 @@ class Data:
 
         #else:
       new_list = []
+      test = []
       # dow_category, dow_category_rev, dow_enc = self.createCategoricalEncodings(data_dict['Day of week'])
       # month_category, month_category_rev, month_enc = self.createCategoricalEncodings(data_dict['Month'])
       #device_category, device_category_rev, device_enc = self.createCategoricalEncodings(data_dict['Dev
-      print(len(data_list))
       for i in range(0, len(data_list)):
 
+        data_list[i]['CTR'] = float(data_list[i]['CTR'].replace(',', '.'))
+        not_clicked = 100 - int(float(data_list[i]['CTR']))
+        clicked = int(float(data_list[i]['CTR']))
+        #print(not_clicked)
+
         if self.response_variable == 'ctr':
-          Y_temp = int(data_list[i]['CTR'])
+            Y_temp = data_list[i]['CTR']
         elif self.response_variable == 'cr':
-          Y_temp = int(data_list[i]['conversion_rate'])
+            data_list[i]['conversion_rate'] = float(data_list[i]['conversion_rate'].replace(',', '.'))
+            Y_temp = data_list[i]['conversion_rate']
+
         #print(enc.transform(data_list[i]['Day of week']))
         X_temp = { 
                     'headline': data_list[i]['headline'],
                     'description': data_list[i]['description'],
                     'path': data_list[i]['path'],
                     'search_keyword': data_list[i]['search_keyword'],
-                    'match_type': data_list[i]['match_type'],
-                    'device': data_list[i]['device'],
+                    'ad_placement': [data_list[i]['ad_placement']],
+                    'ad_type': [data_list[i]['ad_type']],
+                    'match_type': [data_list[i]['match_type']],
+                    'device': [data_list[i]['device']],
+                    'avg_position': [float(data_list[i]['avg_position'].replace(',','.'))],
+                    'avg_cost': [float(data_list[i]['avg_cost'].replace(',','.'))],
+                    'CTR': data_list[i]['CTR'],
                     # 'position': [data_list[i]['Avg. position']],
                     # 'cost': [data_list[i]['Avg. Cost']],
-
                     # 'day_of_week': dow_enc.transform([dow_category[data_list[i]['Day of week']]]).toarray()[0],
                     # 'month': month_enc.transform([month_category[data_list[i]['Month']]]).toarray()[0],
                     #'device': device_enc.transform([device_category[data_list[i]['Device']]]).toarray()[0],
         } 
-        new_list.append((Y_temp, X_temp))
 
-      return new_list
+        test.append((Y_temp, X_temp))
+        Y_list = ['0']*not_clicked + ['1']*clicked
+        X_list = [X_temp]*not_clicked + [X_temp]*clicked
+        combined_temp = tuple(zip(Y_list, X_list))
+
+        new_list += combined_temp
+
+      print(len(new_list))
+
+      return new_list, test
 
 # dow_category, dow_category_rev = self.createCategoricalEncodings(data_dict['Day of week'])
 

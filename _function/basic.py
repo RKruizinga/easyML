@@ -85,7 +85,7 @@ def classificationMetrics(Y_test, Y_predicted, labels):
 
 ### Function to print evaluation text of a script
 ### input(Y_test_list, Y_predicted_list, labels_list)
-def regressionMetrics(Y_test, Y_predicted, labels):
+def regressionMetrics(Y_test, Y_predicted, labels=None):
 
   # for key, Y_test_i in enumerate(Y_test):
   #   print(Y_test_i, Y_predicted[key])
@@ -109,7 +109,7 @@ def classifier(method, data, predict_method, show_fitting):
   elif method == 'tree':
     from classifier.decisionTree import DecisionTree
     return DecisionTree(data, predict_method, show_fitting)
-  elif method == 'neural':
+  elif method == 'neural' or method == 'nn':
     from classifier.neuralNetwork import NeuralNetwork
     return NeuralNetwork(data, predict_method, show_fitting)
   elif method == 'baseline':

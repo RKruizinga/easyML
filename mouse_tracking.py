@@ -1,7 +1,7 @@
 
 #Step 1: Import all mandatory functions
 import random
-
+import numpy as np
 #Step 1.1: Import all classes
 from _class.options import Options
 from _class.data import Data
@@ -29,6 +29,8 @@ from sklearn.feature_selection import SelectKBest, RFE
 from sklearn.feature_selection import chi2
 from sklearn.feature_selection import f_regression
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.preprocessing import FunctionTransformer
 
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.svm import LinearSVC, SVR
@@ -45,6 +47,9 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.externals import joblib
 from sklearn.svm import SVC
 from sklearn.gaussian_process import GaussianProcessClassifier
+from sklearn.naive_bayes import BernoulliNB
+from sklearn.neural_network import MLPClassifier
+from sklearn.neighbors.nearest_centroid import NearestCentroid
 
 from nltk.corpus import stopwords as sw
 from _function.basic import printProbabilities
@@ -82,54 +87,47 @@ data = Data(options.args.avoid_skewness, options.args.data_folder, options.args.
 #Custom, should be self-made!
 
 #Step 8.1: Add the files or folders the data is preserved in (only if available)
-file_name = 'conversion_chance'
-data.file_train = file_name+'.pickle'
-#data.file_train = 'conversion_product.pickle'
-#data.file_train = 'conversion_path.pickle'
 
-#Custom function
+file_name = 'test' 
+#data.file_train = 'conversion_chance.pickle'
+#data.file_train = 'conversion_product.pickle'
+data.file_train = file_name+'.pickle'
 
 #Load data into a file
 data.train = data.load(data.file_train, format='pickle')
-counter = {}
+new_train = [] #strip the configurators for now
+i = 0
+j = 0
+for label, row in data.train:
+  if (label == 'modellen' and i < 400):
+    i += 1
+    new_train.append((label, row))
+  elif (label == 'acties' and j < 400):
+    j += 1
+    new_train.append((label, row))
 
-# for row in data.train:
-#   if row[0] not in counter:
-#     counter[row[0]] = 0
-#   counter[row[0]] += 1
+  elif label != 'modellen' and  label != 'acties':
+    new_train.append((label, row))
 
-# new_train= []
-# for row in data.train:
-#   if counter[row[0]] > 5:
-#     new_train.append(row)
-# data.train = new_train
-
+data.train = new_train
 #Step 8.2: Formulate the preprocessing steps which have to be done
 textPreprocessing = []
 #Step 8.3: Transform the data to our desired format
 data.transform(_type='YXrow', preprocessing=textPreprocessing) #> now we got X, Y and X_train, Y_train, X_development, Y_development and X_test
 
+#print(data.X_train)
 #Step 8.4: For training purposes, we can specify what our subset will look like (train_size, development_size, test_size)
 #data.subset(500, 50, 50)
 #Step 9: Specify the features to use, this part is merely for sklearn.
 features = ClassifierFeatures()
-features.add('pageviews', TfidfVectorizer(tokenizer=TextTokenizer.tokenized, lowercase=False, analyzer='word', ngram_range=(1,3), min_df=1), 'pageviews'),#, max_features=100000)),
-# features.add('page_level_1', TfidfVectorizer(tokenizer=TextTokenizer.tokenized, lowercase=False, analyzer='word', ngram_range=(1,1), min_df=1), 'page_level_1'),#, max_features=100000)),
-# features.add('page_level_2', TfidfVectorizer(tokenizer=TextTokenizer.tokenized, lowercase=False, analyzer='word', ngram_range=(1,1), min_df=1), 'page_level_2'),#, max_features=100000)),
-# features.add('page_level_3', TfidfVectorizer(tokenizer=TextTokenizer.tokenized, lowercase=False, analyzer='word', ngram_range=(1,1), min_df=1), 'page_level_3'),#, max_features=100000)),
-# features.add('page_level_4', TfidfVectorizer(tokenizer=TextTokenizer.tokenized, lowercase=False, analyzer='word', ngram_range=(1,1), min_df=1), 'page_level_4'),#, max_features=100000)),
-#features.add('pageviews_conversion_rate_avg', StandardScaler(), 'pageviews_conversion_rate_avg'),
+features.add('xy_section', TfidfVectorizer(tokenizer=TextTokenizer.tokenized, lowercase=False, analyzer='word', ngram_range=(1, 2), min_df=1), 'xy_section'),#, max_features=100000)),
+features.add('xy_area', TfidfVectorizer(tokenizer=TextTokenizer.tokenized, lowercase=False, analyzer='word', ngram_range=(1, 2), min_df=1), 'xy_area'),#, max_features=100000)),
+#features.add('xy_element', TfidfVectorizer(tokenizer=TextTokenizer.tokenized, lowercase=False, analyzer='word', ngram_range=(1, 1), min_df=1), 'xy_element'),#, max_features=100000)),
 #Step 10: Specify the classifier you want to use (additionaly!)
-new_classifier = SGDClassifier()
-
-#these are for the conversion probability task
-#new_classifier = LogisticRegression()
-#new_classifier = RandomForestClassifier()
-new_classifier = GradientBoostingClassifier()
-#new_classifier =  SVC(kernel='linear', probability=True)
-
-#new_classifier = LinearRegression()
-#new_classifier = Ridge()
+#new_classifier = LogisticRegression(multi_class='multinomial', solver="sag")
+new_classifier = LogisticRegression()
+#new_classifier = SGDClassifier()
+#new_classifier = GradientBoostingClassifier()
 
 if options.args.print_details >= 1:
   printer.labelDistribution(data.Y_train, 'Training Set')
@@ -137,14 +135,8 @@ if options.args.print_details >= 1:
 #Step 11: Run our system.
 if len(data.labels) > 1: #otherwise, there is nothing to train
   classifier = run(options.args.k, options.args.method, data, features._list, printer, options.args.predict_method, new_classifier, options.args.print_details, options.args.show_fitting)
-
-  classifier.Y_development_predicted_proba = classifier.classifier.predict_proba(classifier.X_test)
-  joblib.dump(classifier.classifier, options.args.data_folder+file_name+'_model.pickle') 
-
-  # for i, x in enumerate(classifier.X_test['pageviews']):
-  #   if classifier.Y_development[i] == 1 and classifier.Y_development_predicted_proba[i][1] < 0.2:
-  #     pp.pprint([classifier.X_development['pageviews'][i], classifier.Y_development[i], classifier.Y_development_predicted_proba[i]])
-  #printProbabilities(classifier.Y_development, classifier.Y_development_predicted_proba)
+  #print(classifier.classifier)
+  #joblib.dump(classifier.classifier, options.args.data_folder+file_name+'_model.pickle') 
 
   printer.duration()
 else:

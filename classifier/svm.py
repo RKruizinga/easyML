@@ -32,7 +32,6 @@ class SVM:
 
     self.X_development = data.X_development
     self.Y_development = data.Y_development
-
     self.X_test = data.X_test
 
     self.labels = data.labels
@@ -61,6 +60,8 @@ class SVM:
   def evaluate(self):
     if self.X_development:
       self.Y_development_predicted = self.classifier.predict(self.X_development)
+      #print(self.classifier.predict_proba(self.X_development))
+      #print(self.Y_development[:20], self.Y_development_predicted[:20])
     if self.X_test:
       self.Y_test_predicted = self.classifier.predict(self.X_test)
 
