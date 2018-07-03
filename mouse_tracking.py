@@ -99,10 +99,10 @@ new_train = [] #strip the configurators for now
 i = 0
 j = 0
 for label, row in data.train:
-  if (label == 'modellen' and i < 400):
+  if (label == 'modellen' and i < 1200):
     i += 1
     new_train.append((label, row))
-  elif (label == 'acties' and j < 400):
+  elif (label == 'acties' and j < 1200):
     j += 1
     new_train.append((label, row))
 
@@ -122,7 +122,7 @@ data.transform(_type='YXrow', preprocessing=textPreprocessing) #> now we got X, 
 features = ClassifierFeatures()
 features.add('xy_section', TfidfVectorizer(tokenizer=TextTokenizer.tokenized, lowercase=False, analyzer='word', ngram_range=(1, 2), min_df=1), 'xy_section'),#, max_features=100000)),
 features.add('xy_area', TfidfVectorizer(tokenizer=TextTokenizer.tokenized, lowercase=False, analyzer='word', ngram_range=(1, 2), min_df=1), 'xy_area'),#, max_features=100000)),
-#features.add('xy_element', TfidfVectorizer(tokenizer=TextTokenizer.tokenized, lowercase=False, analyzer='word', ngram_range=(1, 1), min_df=1), 'xy_element'),#, max_features=100000)),
+features.add('xy_element', TfidfVectorizer(tokenizer=TextTokenizer.tokenized, lowercase=False, analyzer='word', ngram_range=(1, 1), min_df=1), 'xy_element'),#, max_features=100000)),
 #Step 10: Specify the classifier you want to use (additionaly!)
 #new_classifier = LogisticRegression(multi_class='multinomial', solver="sag")
 new_classifier = LogisticRegression()

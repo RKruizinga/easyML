@@ -58,23 +58,28 @@ class NeuralNetwork:
     xy_section = []
     xy_area = []
     xy_element = []
+    xy = []
 
     for x in self.X:
       xy_section.append(x['xy_section'])
       #xy_area.append(text_to_word_sequence('|'.join(x['xy_area']), split='|'))
       xy_area.append(x['xy_area'])
       xy_element.append(x['xy_element'])
+      xy.append(x['xy'])
 
     #self.X_tokenized = TextTokenizer.tokenizeTweets(self.X) #all tweets!
     #print(xy_area)
     
-    self.X_tokenized = xy_area
-    vectorizer = TfidfVectorizer(tokenizer=TextTokenizer.tokenized, lowercase=False, analyzer='word', ngram_range=(1, 1), min_df=1)
-    self.X = vectorizer.fit_transform(self.X_tokenized)
-    self.input_length = len(vectorizer.get_feature_names())
+    # self.X_tokenized = xy_area
+    # vectorizer = TfidfVectorizer(tokenizer=TextTokenizer.tokenized, lowercase=False, analyzer='word', ngram_range=(1, 1), min_df=1)
+    # self.X = vectorizer.fit_transform(self.X_tokenized)
+    # self.input_length = len(vectorizer.get_feature_names())
     #print(self.X)
-    #self.X = sequence.pad_sequences(self.X_tokenized)
-    #print(len(self.X))
+    self.X = sequence.pad_sequences(xy)
+    self.feature_length = len(self.X[0])
+    self.feature_dimensions = len(self.X[0][0])
+    print(self.feature_dimensions)
+    self.input_length = len(self.X)
     self.Y = to_categorical(self.Y)
 
 
@@ -102,14 +107,16 @@ class NeuralNetwork:
 
     ##CHANGE OPTIONS HERE
     self.model = Sequential()
-    self.model.add(Dense(512, input_shape=(self.input_length,)))
-    self.model.add(Activation('relu'))
-    self.model.add(Dropout(0.2))
-    # self.model.add(Dense(128))
-    self.model.add(Activation('relu'))
-    self.model.add(Dropout(0.1))
+    self.model.add(Dense(512, input_shape=(self.feature_length, self.feature_dimensions)))
+    self.model.add(Flatten())
     self.model.add(Dense(6))
-    self.model.add(Activation('sigmoid'))
+    self.model.add(Activation('relu'))
+    # self.model.add(Dropout(0.2))
+    # # self.model.add(Dense(128))
+    # self.model.add(Activation('relu'))
+    # self.model.add(Dropout(0.1))
+    # self.model.add(Dense(6, input_dim=self.feature_length,)))
+    # self.model.add(Activation('sigmoid'))
 
 
     self.model.compile(loss='categorical_crossentropy',
