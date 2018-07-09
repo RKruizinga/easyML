@@ -44,7 +44,7 @@ class SVM:
     feature_union = ('feats', FeatureUnion(
       features
     ))
-
+  
     if classifier == None:
       classifier = SGDClassifier(loss='hinge', random_state=42, max_iter=50, tol=None)
       
@@ -52,6 +52,7 @@ class SVM:
       feature_union,
       ('classifier', classifier)
     ])
+    print(self.classifier)
 
     self.printer = Printer('Model Fitting', self.show_fitting)
     self.classifier.fit(self.X_train, self.Y_train)  
@@ -60,6 +61,7 @@ class SVM:
   def evaluate(self):
     if self.X_development:
       self.Y_development_predicted = self.classifier.predict(self.X_development)
+      print(self.X_development)
       #print(self.classifier.predict_proba(self.X_development))
       #print(self.Y_development[:20], self.Y_development_predicted[:20])
     if self.X_test:

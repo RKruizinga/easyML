@@ -13,6 +13,7 @@ from _function.basic import classifier, run
 from _function.custom import writeResults, languages
 
 #Step 1.3: Import classifier
+import static
 from static.classifier.features import ClassifierFeatures
 
 #Step 2: Import custom functions
@@ -56,6 +57,8 @@ from _function.basic import printProbabilities
 
 
 import pprint
+def tokenized(arg):
+    return arg
 
 pp = pprint.PrettyPrinter(indent=2)
 
@@ -131,12 +134,12 @@ new_classifier = LogisticRegression()
 
 if options.args.print_details >= 1:
   printer.labelDistribution(data.Y_train, 'Training Set')
-
+#print(data.X)
 #Step 11: Run our system.
 if len(data.labels) > 1: #otherwise, there is nothing to train
   classifier = run(options.args.k, options.args.method, data, features._list, printer, options.args.predict_method, new_classifier, options.args.print_details, options.args.show_fitting)
   #print(classifier.classifier)
-  #joblib.dump(classifier.classifier, options.args.data_folder+file_name+'_model.pickle') 
+  joblib.dump(classifier.classifier, options.args.data_folder+file_name+'_model.pickle') 
 
   printer.duration()
 else:
